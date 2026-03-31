@@ -3,6 +3,8 @@ set(GrBasicBlocks_HDRS
     include/gnuradio-4.0/basic/Skip.hpp
     include/gnuradio-4.0/basic/ChirpSource.hpp
     include/gnuradio-4.0/basic/AwgnChannel.hpp
+    include/gnuradio-4.0/basic/WindowApply.hpp
+    include/gnuradio-4.0/basic/KeepMInN.hpp
     include/gnuradio-4.0/basic/ClockSource.hpp
     include/gnuradio-4.0/basic/CommonBlocks.hpp
     include/gnuradio-4.0/basic/ConverterBlocks.hpp

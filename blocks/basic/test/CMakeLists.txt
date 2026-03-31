@@ -10,6 +10,12 @@ target_link_libraries(qa_ChirpSource PRIVATE gr-basic)
 add_ut_test(qa_AwgnChannel)
 target_link_libraries(qa_AwgnChannel PRIVATE gr-basic)
 
+add_ut_test(qa_WindowApply)
+target_link_libraries(qa_WindowApply PRIVATE gr-basic)
+
+add_ut_test(qa_KeepMInN)
+target_link_libraries(qa_KeepMInN PRIVATE gr-basic)
+
 add_ut_test(qa_Converter)
 add_ut_test(qa_Selector)
 add_ut_test(qa_sources)
