@@ -1,0 +1,41 @@
+{
+  "name": "GNU Radio 4.0",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "initializeCommand": "printf 'USER_UID=%s\\n' $(id -u) > .devcontainer/.env",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "remoteUser": "user",
+  "remoteEnv": {
+    "HOME": "/home/user"
+  },
+  "postStartCommand": "[ -f build/CMakeCache.txt ] || cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_CXX_COMPILER=/usr/bin/clang++-20 -DUSE_CCACHE=ON -DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "mhutchie.git-graph"
+      ],
+      "settings": {
+        "C_Cpp.intelliSenseEngine": "disabled",
+        "clangd.path": "/usr/bin/clangd-20",
+        "clangd.arguments": [
+          "--header-insertion=never",
+          "--completion-style=detailed",
+          "--background-index",
+          "--clang-tidy"
+        ],
+        "cmake.buildDirectory": "${workspaceFolder}/build",
+        "cmake.parallelJobs": 6,
+        "cmake.configureSettings": {
+          "CMAKE_BUILD_TYPE": "Debug",
+          "CMAKE_CXX_COMPILER": "/usr/bin/clang++-20",
+          "USE_CCACHE": "ON",
+          "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        }
+      }
+    }
+  }
+}
