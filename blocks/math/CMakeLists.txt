@@ -9,9 +9,12 @@ gr_add_block_library(
   GrMathBlocks
   MAKE_SHARED_LIBRARY
   HEADERS
+  include/gnuradio-4.0/math/Conjugate.hpp
+  include/gnuradio-4.0/math/Differentiator.hpp
   include/gnuradio-4.0/math/ExpressionBlocks.hpp
   include/gnuradio-4.0/math/Math.hpp
   include/gnuradio-4.0/math/MovingAverage.hpp
+  include/gnuradio-4.0/math/PhaseUnwrap.hpp
   include/gnuradio-4.0/math/QuadratureDemod.hpp
   include/gnuradio-4.0/math/Rotator.hpp
   LINK_LIBRARIES

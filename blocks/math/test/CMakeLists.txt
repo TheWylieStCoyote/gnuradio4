@@ -1,5 +1,6 @@
 add_ut_test(qa_Math)
 add_ut_test(qa_ExpressionBlocks)
+add_ut_test(qa_MathUtils)
 add_ut_test(qa_MovingAverage)
 add_ut_test(qa_QuadratureDemod)
 add_ut_test(qa_Rotator)
