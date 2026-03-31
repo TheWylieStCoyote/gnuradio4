@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**76 blocks** across 10 modules.
+**77 blocks** across 10 modules.
 
 ---
 
@@ -232,6 +232,18 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `min` (default -1), `max` (default 1)
 - **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `EnergyDetector.hpp`
+
+#### `EnergyDetector<T>`
+- **Description:** "moving-energy threshold detector: publishes a tag on rising/falling threshold crossings; samples pass through unchanged"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `window_size` (default 32), `threshold` (linear |x|² energy), `hysteresis` (default 0), `tag_key` (default "energy_detect")
+- **State:** `HistoryBuffer<value_type> _powerHistory`, `value_type _runningEnergy`, `std::size_t _filledCount`, `bool _detected`
+- **Processing:** `processOne` — publishes `tag_key={true/false}` on edge crossings
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
 ---
@@ -647,4 +659,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
+**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).

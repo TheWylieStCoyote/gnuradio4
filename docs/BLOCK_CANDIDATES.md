@@ -420,12 +420,8 @@ Cascade-Integrator-Comb (CIC) filters for very high decimation/interpolation rat
 
 ### Module: basic / testing
 
-#### `EnergyDetector<T>` — P2 (new)
-Computes a moving energy estimate (running sum of `|x[n]|²`) and publishes a named tag on threshold crossings. Used for burst and preamble detection in packet radio and radar. Distinct from `Squelch` (gates output) and `SchmittTrigger` (operates on amplitude, not energy).
-- **Ports:** `PortIn<T> in`, `PortOut<T> out` (pass-through; tags injected on edges)
-- **Settings:** `window_size`, `threshold` (linear energy), `tag_name` (default `"energy_detect"`), `hysteresis` (prevents chatter)
-- **Processing:** `processBulk` — HistoryBuffer + running |x|² sum; `mergedInputTag` / `publishTag` pattern
-- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+#### `EnergyDetector<T>` — P2 (new) ✓ implemented
+Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnuradio-4.0/math/EnergyDetector.hpp`. Pass-through block; publishes `tag_key={true/false}` on rising/falling threshold crossings. Supports float, double, complex<float>, complex<double>.
 
 ---
 
