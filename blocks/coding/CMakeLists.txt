@@ -19,6 +19,7 @@ gr_add_block_library(
   include/gnuradio-4.0/coding/Scrambler.hpp
   include/gnuradio-4.0/coding/CrcCompute.hpp
   include/gnuradio-4.0/coding/ConvEncoder.hpp
+  include/gnuradio-4.0/coding/ViterbiDecoder.hpp
   LINK_LIBRARIES
   gr-coding)
 

@@ -24,3 +24,6 @@ target_link_libraries(qa_CrcCompute PRIVATE gr-coding)
 
 add_ut_test(qa_ConvEncoder)
 target_link_libraries(qa_ConvEncoder PRIVATE gr-coding)
+
+add_ut_test(qa_ViterbiDecoder)
+target_link_libraries(qa_ViterbiDecoder PRIVATE gr-coding)
