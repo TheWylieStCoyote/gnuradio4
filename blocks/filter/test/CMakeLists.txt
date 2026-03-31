@@ -33,3 +33,6 @@ target_link_libraries(qa_AdaptiveLmsFilter PRIVATE gr-filter)
 
 add_ut_test(qa_Squelch)
 target_link_libraries(qa_Squelch PRIVATE gr-filter)
+
+add_ut_test(qa_Convolver)
+target_link_libraries(qa_Convolver PRIVATE gr-filter)
