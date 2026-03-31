@@ -25,6 +25,12 @@ target_link_libraries(qa_TagDebugSink PRIVATE gr-basic)
 add_ut_test(qa_TagGate)
 target_link_libraries(qa_TagGate PRIVATE gr-basic)
 
+add_ut_test(qa_StreamMux)
+target_link_libraries(qa_StreamMux PRIVATE gr-basic)
+
+add_ut_test(qa_StreamDemux)
+target_link_libraries(qa_StreamDemux PRIVATE gr-basic)
+
 add_ut_test(qa_Converter)
 add_ut_test(qa_Selector)
 add_ut_test(qa_sources)

@@ -8,6 +8,8 @@ set(GrBasicBlocks_HDRS
     include/gnuradio-4.0/basic/StreamTagger.hpp
     include/gnuradio-4.0/basic/TagDebugSink.hpp
     include/gnuradio-4.0/basic/TagGate.hpp
+    include/gnuradio-4.0/basic/StreamMux.hpp
+    include/gnuradio-4.0/basic/StreamDemux.hpp
     include/gnuradio-4.0/basic/ClockSource.hpp
     include/gnuradio-4.0/basic/CommonBlocks.hpp
     include/gnuradio-4.0/basic/ConverterBlocks.hpp
