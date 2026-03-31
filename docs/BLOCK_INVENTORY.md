@@ -1007,6 +1007,14 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Settings:** `poly`, `initial_value`, `mode` (append/verify)
 - **Processing:** `processBulk`
 
+### `ConvEncoder.hpp`
+
+#### `ConvEncoder`
+- **Description:** "rate-1/N convolutional encoder; one output byte per generator polynomial per input bit; shift-register length K; default polynomials are the NASA K=7 rate-1/2 code [0133, 0171]"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `constraint_length` (default 7), `generator_polynomials` (default [0133, 0171])
+- **Processing:** `processBulk` — dynamic `output_chunk_size = len(polys)`
+
 ---
 
 ## Module: demod (`blocks/demod/`)
@@ -1084,9 +1092,9 @@ Generated from a two-pass review of the `add-blocks` branch.
 | soapy | 1 |
 | testing | 12 |
 | ofdm | 2 |
-| coding | 8 |
+| coding | 9 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **113** |
+| **Total** | **114** |
 
 **Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN` (basic).

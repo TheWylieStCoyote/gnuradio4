@@ -21,3 +21,6 @@ target_link_libraries(qa_Scrambler PRIVATE gr-coding)
 
 add_ut_test(qa_CrcCompute)
 target_link_libraries(qa_CrcCompute PRIVATE gr-coding)
+
+add_ut_test(qa_ConvEncoder)
+target_link_libraries(qa_ConvEncoder PRIVATE gr-coding)

@@ -381,7 +381,7 @@ Converts between natural binary and Gray code (reflected binary). Each output bi
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Processing:** `processOne` — stateless (`n ^ (n >> 1)` for encode; iterative XOR-fold for decode)
 
-#### `ConvEncoder` — P3
+#### `ConvEncoder` — P3 ✓ implemented
 Rate-1/2 or rate-1/3 convolutional encoder using a configurable constraint length and generator polynomials. Produces the standard encoded bit stream for use with a `ViterbiDecoder`. Stateless except for the shift register.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `constraint_length`, `generator_polynomials`, `rate` (1/2 or 1/3)
