@@ -209,13 +209,8 @@ Delays a signal by a non-integer number of samples using a Farrow filter (polyno
 - **State:** `HistoryBuffer<T> _history`
 - **Processing:** `processOne` or `processBulk`
 
-#### `WienerFilter<T>` — P2
-Computes the optimal linear FIR filter in the MMSE sense by solving the Wiener-Hopf normal equations: `R_xx · h = r_xd`, where `R_xx` is the input autocorrelation matrix and `r_xd` is the cross-correlation between input and desired signal. Uses the Levinson-Durbin recursion for O(n²) solution. Distinct from `AdaptiveLmsFilter` which tracks a *varying* optimum continuously; this block derives the best *fixed* taps from a training burst and then applies them as a static FIR. Typical uses: supervised denoising, offline channel equalisation, and system identification when a clean reference signal is available.
-- **Ports:** `PortIn<T> in`, `PortIn<T> desired`, `PortOut<T> out`
-- **Settings:** `n_taps`, `training_length` (samples used to estimate statistics; 0 = use all input)
-- **State:** `std::vector<T> _taps` (recomputed in `settingsChanged` or on a tagged training burst)
-- **Processing:** `processBulk`
-- **Implementation notes:** Training and filtering can be separated: a `settingsChanged` path computes taps from pre-supplied `autocorr`/`crosscorr` vectors, while a streaming path accumulates statistics over `training_length` samples before switching to filter mode.
+#### `WienerFilter<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::filter::WienerFilter<T>` in `blocks/filter/include/gnuradio-4.0/filter/WienerFilter.hpp`. Trains on paired `(in, desired)` streams for `training_length` samples, solves R_xx·h = r_xd via Gaussian elimination with partial pivoting and diagonal regularisation, then applies frozen FIR taps. Supports float, double, complex<float>, complex<double>.
 
 ---
 
@@ -458,9 +453,9 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+6 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓ (12/44) | all others |
+| P2 | 38+7 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓ (13/45) | all others |
 | P3 | 9+1 new | — | all |
-| **Total** | **65** | **19 implemented** | **46 remaining** |
+| **Total** | **66** | **20 implemented** | **46 remaining** |
 
 **New blocks added to this file (session 2+):**
 - Unconsidered originally: `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (5 blocks, all P2)

@@ -16,6 +16,7 @@ gr_add_block_library(
   include/gnuradio-4.0/filter/SavitzkyGolayFilter.hpp
   include/gnuradio-4.0/filter/SvdDenoiser.hpp
   include/gnuradio-4.0/filter/time_domain_filter.hpp
+  include/gnuradio-4.0/filter/WienerFilter.hpp
   LINK_LIBRARIES
   gr-filter
   gnuradio-algorithm)

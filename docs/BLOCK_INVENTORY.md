@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**79 blocks** across 10 modules.
+**80 blocks** across 10 modules.
 
 ---
 
@@ -532,6 +532,14 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk`
 - **Types:** all numeric types
 
+#### `WienerFilter<T>`
+- **Description:** "optimal MMSE FIR filter derived from the Wiener-Hopf normal equations; trains on paired `(in, desired)` streams for `training_length` samples, solves R_xx·h = r_xd once via Gaussian elimination, then applies frozen taps; output is zero during the training phase"
+- **Ports:** `PortIn<T> in`, `PortIn<T> desired`, `PortOut<T> out`
+- **Settings:** `n_taps` (default 16), `training_length` (default 256), `regularisation` (default 1e-6)
+- **State:** `HistoryBuffer<T> _xHistory`, `std::vector<T> _Rxx` (N×N), `std::vector<T> _rxd` (N), `std::vector<T> _taps` (N)
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ---
 
 ## Module: http (`blocks/http/`)
@@ -675,6 +683,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | soapy | 1 |
 | testing | 12 |
 | timing | 2 |
-| **Total** | **67** |
+| **Total** | **68** |
 
-**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).
