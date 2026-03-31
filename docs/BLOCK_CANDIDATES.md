@@ -140,11 +140,8 @@ Implemented as `gr::blocks::math::PhaseUnwrap<T>` in `blocks/math/include/gnurad
 #### `Conjugate<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::Conjugate<T>` in `blocks/math/include/gnuradio-4.0/math/Conjugate.hpp`. Supports complex<float>, complex<double>.
 
-#### `Accumulator<T>` — P2
-Running sum (integration) of the input stream; optionally resets on a tag. Useful for energy integration, phase accumulation, and Σ-Δ modulation.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `reset_tag_key`
-- **Processing:** `processOne`
+#### `Accumulator<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Accumulator<T>` in `blocks/math/include/gnuradio-4.0/math/Accumulator.hpp`. Supports float, double, complex<float>, complex<double>.
 
 #### `Differentiator<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::Differentiator<T>` in `blocks/math/include/gnuradio-4.0/math/Differentiator.hpp`. Supports float, double, complex<float>, complex<double>.

@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**59 blocks** across 10 modules.
+**68 blocks** across 10 modules.
 
 ---
 
@@ -200,6 +200,18 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `sample_rate`, `frequency_shift`, `phase_increment`, `initial_phase`
 - **Processing:** `processOne` — multiplies by a rotating complex phasor
+
+---
+
+### `Accumulator.hpp`
+
+#### `Accumulator<T>`
+- **Description:** "running sum (numerical integration): `out[n] = out[n-1] + in[n]`; resets to zero on a tagged sample when `reset_tag_key` is set"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `reset_tag_key` (empty = never reset)
+- **State:** `T _sum`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
 ---
 
@@ -554,4 +566,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `MovingAverage`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).
+**Recently added (this session):** `Accumulator`, `MovingAverage`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).
