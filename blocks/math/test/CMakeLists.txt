@@ -1,4 +1,5 @@
 add_ut_test(qa_Accumulator)
+add_ut_test(qa_AmDemod)
 add_ut_test(qa_Clamp)
 add_ut_test(qa_Math)
 add_ut_test(qa_MovingRms)

@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**70 blocks** across 10 modules.
+**72 blocks** across 10 modules.
 
 ---
 
@@ -200,6 +200,16 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `sample_rate`, `frequency_shift`, `phase_increment`, `initial_phase`
 - **Processing:** `processOne` — multiplies by a rotating complex phasor
+
+---
+
+### `AmDemod.hpp`
+
+#### `AmDemod<T>`
+- **Description:** "AM envelope detector: recovers the instantaneous amplitude of a complex baseband signal via `|in[n]|`; chain with DCBlocker for DSB-SC demodulation"
+- **Ports:** `PortIn<T> in` (complex), `PortOut<value_type> out` (real scalar)
+- **Processing:** `processOne` — stateless
+- **Types:** `std::complex<float>`, `std::complex<double>`
 
 ---
 
@@ -444,6 +454,13 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Types:** all numeric types including `UncertainValue<float/double>`
 - **Note:** counterpart to the existing `Decimator<T>`
 
+#### `Repeat<T>` — `Resampling<1UZ, 1UZ, false>`
+- **Description:** "zero-order-hold (sample-and-hold) upsampler: repeats each input sample `repeat` times on the output; unlike Interpolator, no zeros are inserted"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `repeat` (default 1) — hold factor; sets `output_chunk_size` dynamically
+- **Processing:** `processBulk`
+- **Types:** all numeric types
+
 ---
 
 ## Module: http (`blocks/http/`)
@@ -589,4 +606,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `Clamp`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).
+**Recently added (this session):** `Accumulator`, `AmDemod`, `Clamp`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).

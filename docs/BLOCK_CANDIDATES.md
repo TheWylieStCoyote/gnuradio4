@@ -71,11 +71,8 @@ Splits one input stream into N output streams, cycling through outputs in round-
 - **Settings:** `n_outputs`, `samples_per_output`
 - **Processing:** `processBulk`
 
-#### `Repeat<T>` — P3
-Repeats each input sample `repeat_count` times on the output. Simple zero-order-hold upsampler.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `repeat_count`
-- **Processing:** `processBulk` — `Resampling<1, N>`
+#### `Repeat<T>` — P3 ✓ implemented
+Implemented as `gr::filter::Repeat<T>` in `blocks/filter/include/gnuradio-4.0/filter/time_domain_filter.hpp`. Zero-order-hold upsampler; each input sample is repeated `repeat` times. Supports all numeric types.
 
 ---
 
@@ -223,11 +220,8 @@ The framework currently has no demodulation blocks. The following cover the most
 #### `QuadratureDemod<T>` — P1 ✓ implemented
 Implemented as `gr::blocks::math::QuadratureDemod<T>` in `blocks/math/include/gnuradio-4.0/math/QuadratureDemod.hpp`. Supports complex<float>, complex<double>; outputs the corresponding real scalar type.
 
-#### `AmDemod<T>` — P2
-AM envelope detector: computes `abs(in)` and optionally removes the carrier DC. Handles both DSB-LC and DSB-SC.
-- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<T> out`
-- **Settings:** `remove_dc` (bool)
-- **Processing:** `processOne`
+#### `AmDemod<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::AmDemod<T>` in `blocks/math/include/gnuradio-4.0/math/AmDemod.hpp`. Computes `|in[n]|`; chain with DCBlocker for DSB-SC. Supports complex<float>, complex<double>; outputs the corresponding real scalar type.
 
 #### `PLL<T>` — P1
 Phase-Locked Loop for carrier recovery: tracks an input carrier and outputs a locked reference sinusoid. Essential for coherent demodulation of AM, PM, and narrowband FM signals.

@@ -287,6 +287,31 @@ const boost::ut::suite<"Basic[Decimating]Filter"> BasicFilterTests = [] {
         expect(eq(sink.count, kInputs * kInterp));
     };
 
+    "Repeat - zero-order-hold upsampling"_test = [] {
+        using namespace gr::testing;
+        using T = int;
+
+        constexpr gr::Size_t kRepeat = 4U;
+        constexpr gr::Size_t kInputs = 5U;
+
+        gr::Graph flow;
+        auto&     source = flow.emplaceBlock<CountingSource<T>>({{"n_samples_max", kInputs}});
+        auto&     rep    = flow.emplaceBlock<gr::filter::Repeat<T>>({{"repeat", kRepeat}});
+        auto&     sink   = flow.emplaceBlock<CountingSink<T>>();
+        expect(flow.connect<"out", "in">(source, rep).has_value());
+        expect(flow.connect<"out", "in">(rep, sink).has_value());
+
+        gr::scheduler::Simple<> sched;
+        if (auto ret = sched.exchange(std::move(flow)); !ret) {
+            throw std::runtime_error(std::format("failed to initialize scheduler: {}", ret.error()));
+        }
+        expect(sched.runAndWait().has_value());
+
+        expect(eq(rep.repeat, kRepeat));
+        expect(eq(rep.output_chunk_size, kRepeat));
+        expect(eq(sink.count, kInputs * kRepeat));
+    };
+
     "Decimator - Low-pass Filter Test"_test = [] {
         using namespace gr::testing;
         using T = int;

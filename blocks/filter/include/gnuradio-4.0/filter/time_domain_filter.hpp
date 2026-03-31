@@ -277,6 +277,38 @@ is applied; chain with an FIR low-pass filter to obtain proper interpolation.
     }
 };
 
+GR_REGISTER_BLOCK(gr::filter::Repeat, [T], [ float, double, std::complex<float>, std::complex<double>, std::int8_t, std::int16_t, std::int32_t, std::int64_t, std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t ])
+
+template<typename T>
+struct Repeat : Block<Repeat<T>, Resampling<1UZ, 1UZ, false>> {
+    using TParent     = Block<Repeat<T>, Resampling<1UZ, 1UZ, false>>;
+    using Description = Doc<R""(@brief Zero-order-hold upsampler (sample-and-hold).
+
+Repeats each input sample `repeat` times on the output. Unlike `Interpolator`,
+which inserts zeros between samples, `Repeat` holds the last value — equivalent
+to a zero-order-hold (ZOH) reconstruction. No anti-imaging filter is applied.
+)"">;
+
+    PortIn<T>  in;
+    PortOut<T> out;
+
+    Annotated<gr::Size_t, "repeat", Doc<"number of times each input sample is repeated on the output (≥ 1)">, Visible> repeat{1};
+
+    GR_MAKE_REFLECTABLE(Repeat, in, out, repeat);
+
+    void settingsChanged(const property_map& /*oldSettings*/, const property_map& /*newSettings*/) { this->output_chunk_size = repeat; }
+
+    [[nodiscard]] work::Status processBulk(std::span<const T> input, std::span<T> output) noexcept {
+        const std::size_t factor = static_cast<std::size_t>(repeat);
+        assert(output.size() >= input.size() * factor);
+
+        for (std::size_t i = 0; i < input.size(); ++i) {
+            std::fill_n(output.data() + i * factor, factor, input[i]);
+        }
+        return work::Status::OK;
+    }
+};
+
 } // namespace gr::filter
 
 #endif // GNURADIO_TIME_DOMAIN_FILTER_HPP
