@@ -11,6 +11,7 @@ gr_add_block_library(
   HEADERS
   include/gnuradio-4.0/math/ExpressionBlocks.hpp
   include/gnuradio-4.0/math/Math.hpp
+  include/gnuradio-4.0/math/MovingAverage.hpp
   include/gnuradio-4.0/math/Rotator.hpp
   LINK_LIBRARIES
   gr-math)
