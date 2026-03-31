@@ -1,3 +1,9 @@
+add_ut_test(qa_Head)
+target_link_libraries(qa_Head PRIVATE gr-basic)
+
+add_ut_test(qa_Skip)
+target_link_libraries(qa_Skip PRIVATE gr-basic)
+
 add_ut_test(qa_Converter)
 add_ut_test(qa_Selector)
 add_ut_test(qa_sources)
