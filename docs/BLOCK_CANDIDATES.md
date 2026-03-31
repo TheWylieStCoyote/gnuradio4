@@ -190,11 +190,8 @@ Implemented as `gr::blocks::math::Accumulator<T>` in `blocks/math/include/gnurad
 #### `Differentiator<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::Differentiator<T>` in `blocks/math/include/gnuradio-4.0/math/Differentiator.hpp`. Supports float, double, complex<float>, complex<double>.
 
-#### `PeakDetector<T>` — P2
-Detects local maxima (and optionally minima) in the stream and publishes a tag at each detected peak. Configurable look-ahead window and minimum peak height.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `look_ahead`, `min_peak_height`, `min_peak_distance`
-- **Processing:** `processBulk`
+#### `PeakDetector<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::PeakDetector<T>` in `blocks/math/include/gnuradio-4.0/math/PeakDetector.hpp`.
 
 #### `Histogram<T>` — P3
 Accumulates a sample-amplitude histogram over a configurable window and emits it as a `DataSet` output. Used for distribution analysis, ADC characterisation, and density estimation.
@@ -202,11 +199,8 @@ Accumulates a sample-amplitude histogram over a configurable window and emits it
 - **Settings:** `n_bins`, `min_value`, `max_value`, `accumulate_n`
 - **Processing:** `processBulk`
 
-#### `Correlation<T>` — P2
-Computes the cross-correlation between two input streams over a sliding window. Key primitive for preamble detection, time-of-arrival estimation, and matched filtering.
-- **Ports:** `PortIn<T> signal`, `PortIn<T> reference`, `PortOut<T> out`
-- **Settings:** `window_size`
-- **Processing:** `processBulk`
+#### `Correlation<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Correlation<T>` in `blocks/math/include/gnuradio-4.0/math/Correlation.hpp`.
 
 #### `AutoCorrelation<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::AutoCorrelation<T>` in `blocks/math/include/gnuradio-4.0/math/AutoCorrelation.hpp`.
@@ -563,7 +557,7 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓, `Goertzel`✓, `AutoCorrelation`✓ (18/55) | all others |
+| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓, `Goertzel`✓, `AutoCorrelation`✓, `Correlation`✓, `PeakDetector`✓ (20/55) | all others |
 | P3 | 9+4 new | — | all |
 | **Total** | **82** | **20 implemented** | **62 remaining** |
 

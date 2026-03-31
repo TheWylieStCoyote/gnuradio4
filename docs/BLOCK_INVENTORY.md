@@ -357,6 +357,30 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `Correlation.hpp`
+
+#### `Correlation<T>`
+- **Description:** "sliding cross-correlation between two input streams: `out[n] = (1/W) · Σ_{k=0}^{W-1} signal[n-k] · conj(reference[n-k])`; O(1)-per-sample running-sum implementation"
+- **Ports:** `PortIn<T> signal`, `PortIn<T> reference`, `PortOut<T> out`
+- **Settings:** `window_size` (default 32)
+- **State:** `HistoryBuffer<T> _sigHistory`, `HistoryBuffer<T> _refHistory`, `T _runningSum`, `std::size_t _filledCount`
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `PeakDetector.hpp`
+
+#### `PeakDetector<T>`
+- **Description:** "detects local maxima using a look-ahead window; peak samples are passed through, non-peaks are zeroed; a tag is published at each peak; introduces `look_ahead` samples of latency"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `look_ahead` (default 8), `min_peak_height` (default 0), `min_peak_distance` (default 1), `tag_key` (default "peak")
+- **State:** `std::vector<T> _buf` (circular look-ahead buffer), `_head`, `_filled`, `_samplesSincePeak`
+- **Processing:** `processBulk` — `Resampling<1,1,false>`
+- **Types:** `float`, `double`
+
+---
+
 ### `AutoCorrelation.hpp`
 
 #### `AutoCorrelation<T>`
@@ -731,7 +755,7 @@ Generated from a two-pass review of the `add-blocks` branch.
 | Module | Count |
 |---|---|
 | basic | 22 |
-| math | 16 |
+| math | 18 |
 | electrical | 3 |
 | fileio | 2 |
 | fourier | 1 |
@@ -740,6 +764,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | soapy | 1 |
 | testing | 12 |
 | timing | 2 |
-| **Total** | **73** |
+| **Total** | **75** |
 
 **Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).

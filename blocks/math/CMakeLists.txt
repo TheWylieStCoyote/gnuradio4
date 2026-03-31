@@ -26,7 +26,9 @@ gr_add_block_library(
   include/gnuradio-4.0/math/QuadratureDemod.hpp
   include/gnuradio-4.0/math/Rotator.hpp
   include/gnuradio-4.0/math/AutoCorrelation.hpp
+  include/gnuradio-4.0/math/Correlation.hpp
   include/gnuradio-4.0/math/Goertzel.hpp
+  include/gnuradio-4.0/math/PeakDetector.hpp
   include/gnuradio-4.0/math/InstantaneousFrequency.hpp
   include/gnuradio-4.0/math/SchmittTrigger.hpp
   include/gnuradio-4.0/math/Threshold.hpp
