@@ -1,6 +1,8 @@
 add_ut_test(qa_Accumulator)
 add_ut_test(qa_AmDemod)
 add_ut_test(qa_Clamp)
+add_ut_test(qa_DbConvert)
+add_ut_test(qa_Limiter)
 add_ut_test(qa_Math)
 add_ut_test(qa_MovingRms)
 add_ut_test(qa_ExpressionBlocks)

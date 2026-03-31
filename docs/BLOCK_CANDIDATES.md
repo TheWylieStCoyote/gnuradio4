@@ -406,19 +406,11 @@ Automatic Gain Control: tracks output power using an exponential moving average 
 - **Processing:** `processOne` — EMA power estimate + gain clamp + `output = input * gain`
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
-#### `PowerToDb<T>` / `DbToPower<T>` — P2 (new)
-Converts between linear power (or amplitude) and decibels. Used after `Abs<T>`, `MovingRms`, or FFT magnitude outputs for display and logging. Ubiquitous in RF work; avoids scattering `10*log10()` calls through user code.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `ref` (reference level, default 1.0); `amplitude_not_power` (bool; switches between 20·log10 and 10·log10)
-- **Processing:** `processOne` — stateless
-- **Types:** `float`, `double`
+#### `PowerToDb<T>` / `DbToPower<T>` — P2 (new) ✓ implemented
+Implemented as `gr::blocks::math::PowerToDb<T>` and `gr::blocks::math::DbToPower<T>` in `blocks/math/include/gnuradio-4.0/math/DbConvert.hpp`. Supports `amplitude_mode` flag (20·log10 vs 10·log10) and configurable `ref`. Types: float, double.
 
-#### `Limiter<T>` — P2 (new)
-Symmetric hard amplitude limiter: clips any sample with `|x| > limit` to `±limit` for real types, or scales the magnitude to `limit` while preserving direction for complex types. Distinct from `Clamp` (asymmetric min/max bounds); models analogue saturation and prevents downstream overflow.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `limit` (positive scalar, default 1.0)
-- **Processing:** `processOne` — stateless
-- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+#### `Limiter<T>` — P2 (new) ✓ implemented
+Implemented as `gr::blocks::math::Limiter<T>` in `blocks/math/include/gnuradio-4.0/math/Limiter.hpp`. For complex types, scales the magnitude to `limit` while preserving phase. Supports float, double, complex<float>, complex<double>.
 
 ### Module: filter
 

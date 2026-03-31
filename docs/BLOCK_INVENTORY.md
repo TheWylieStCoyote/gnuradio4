@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**72 blocks** across 10 modules.
+**75 blocks** across 10 modules.
 
 ---
 
@@ -219,6 +219,35 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Description:** "clips each sample to [min, max]; for complex types, real and imaginary parts are clamped independently"
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `min` (default -1), `max` (default 1)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `DbConvert.hpp`
+
+#### `PowerToDb<T>`
+- **Description:** "converts linear power to dB: `10 * log10(in / ref)`; set `amplitude_mode = true` for `20 * log10`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `ref` (default 1), `amplitude_mode` (default false)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`
+
+#### `DbToPower<T>`
+- **Description:** "converts dB back to linear power: `ref * 10^(in / 10)`; set `amplitude_mode = true` for `10^(in / 20)`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `ref` (default 1), `amplitude_mode` (default false)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`
+
+---
+
+### `Limiter.hpp`
+
+#### `Limiter<T>`
+- **Description:** "symmetric hard amplitude limiter: real types use `clamp(x, -limit, limit)`; complex types scale magnitude to `limit` while preserving phase"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `limit` (default 1)
 - **Processing:** `processOne` — stateless
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
@@ -606,4 +635,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `AmDemod`, `Clamp`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
+**Recently added (this session):** `Accumulator`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).

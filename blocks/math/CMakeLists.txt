@@ -12,6 +12,8 @@ gr_add_block_library(
   include/gnuradio-4.0/math/Accumulator.hpp
   include/gnuradio-4.0/math/AmDemod.hpp
   include/gnuradio-4.0/math/Clamp.hpp
+  include/gnuradio-4.0/math/DbConvert.hpp
+  include/gnuradio-4.0/math/Limiter.hpp
   include/gnuradio-4.0/math/Conjugate.hpp
   include/gnuradio-4.0/math/MovingRms.hpp
   include/gnuradio-4.0/math/Differentiator.hpp
