@@ -410,13 +410,8 @@ Implemented as `gr::blocks::math::Limiter<T>` in `blocks/math/include/gnuradio-4
 
 ### Module: filter
 
-#### `CicDecimator<T>` / `CicInterpolator<T>` — P2 (new)
-Cascade-Integrator-Comb (CIC) filters for very high decimation/interpolation ratios (64×–1024×) without multipliers. The standard FPGA→CPU sample-rate handoff primitive; not covered by `Decimator` (raw drop, no filtering) or `RationalResampler` (FIR-based, impractical at high ratios).
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings (decimator):** `decimation` (R), `n_stages` (default 5), `differential_delay` (M, default 1); applies gain compensation `÷ R^n_stages`
-- **Settings (interpolator):** `interpolation` (L), `n_stages`, `differential_delay`
-- **Processing:** `processBulk` — `Resampling<R,1>` / `Resampling<1,L>` (dynamic)
-- **Types:** `int16_t`, `int32_t`, `float`, `double`
+#### `CicDecimator<T>` / `CicInterpolator<T>` — P2 (new) ✓ implemented
+Implemented as `gr::filter::CicDecimator<T>` and `gr::filter::CicInterpolator<T>` in `blocks/filter/include/gnuradio-4.0/filter/CicFilter.hpp`. Uses double-precision accumulators internally; output normalised by `1/R^N` (decimator) or `1/L^N` (interpolator). Types: float, double, int16_t, int32_t.
 
 ### Module: basic / testing
 

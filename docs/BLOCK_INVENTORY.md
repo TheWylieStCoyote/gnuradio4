@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**77 blocks** across 10 modules.
+**79 blocks** across 10 modules.
 
 ---
 
@@ -499,6 +499,24 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processOne`
 - **Types:** `float`, `double`
 
+#### `CicDecimator<T>` — `Resampling<1UZ, 1UZ, false>`
+- **Description:** "CIC decimation filter: N integrator stages → R:1 downsample → N comb stages; output normalised by `1/R^N`; multiplier-free for very high rate reductions"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `decimation` (R, default 8), `n_stages` (N, default 5), `differential_delay` (M, default 1)
+- **State:** `std::vector<double> _integrators`, `std::vector<double> _combs`
+- **Processing:** `processBulk` — dynamic `input_chunk_size = R`
+- **Types:** `float`, `double`, `std::int16_t`, `std::int32_t`
+
+#### `CicInterpolator<T>` — `Resampling<1UZ, 1UZ, false>`
+- **Description:** "CIC interpolation filter: N comb stages → 1:L upsample → N integrator stages; output normalised by `1/L^N`; multiplier-free for very high rate increases"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interpolation` (L, default 8), `n_stages` (N, default 5), `differential_delay` (M, default 1)
+- **State:** `std::vector<double> _combs`, `std::vector<double> _integrators`
+- **Processing:** `processBulk` — dynamic `output_chunk_size = L`
+- **Types:** `float`, `double`, `std::int16_t`, `std::int32_t`
+
+---
+
 #### `Interpolator<T>` — `Resampling<1UZ, 1UZ, false>`
 - **Description:** "zero-insertion upsampler: each input sample is followed by `interp − 1` zero-valued samples; no anti-imaging filter — chain with an FIR low-pass for proper interpolation"
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
@@ -659,4 +677,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
+**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
