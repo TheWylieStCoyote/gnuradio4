@@ -203,6 +203,62 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `MovingAverage.hpp`
+
+#### `MovingAverage<T>`
+- **Description:** "causal moving average filter over a configurable window of samples using an O(1)-per-sample running-sum implementation; warm-up phase averages only available samples"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `length` (default 16) — window size in samples
+- **State:** `HistoryBuffer<T> _history`, `T _runningSum`, `std::size_t _filledCount`
+- **Processing:** `processOne` — `_runningSum * (1 / min(_filledCount, len))`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `QuadratureDemod.hpp`
+
+#### `QuadratureDemod<T>`
+- **Description:** "FM/PM demodulator that recovers instantaneous frequency from a complex baseband signal by computing `gain * arg(x[n] * conj(x[n-1]))`"
+- **Ports:** `PortIn<T> in` (complex), `PortOut<value_type> out` (real scalar)
+- **Settings:** `gain` (default 1) — scales phase-difference output; set to `sample_rate / (2π · max_deviation)` for FM
+- **State:** `T _prev`
+- **Processing:** `processOne`
+- **Types:** `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `PhaseUnwrap.hpp`
+
+#### `PhaseUnwrap<T>`
+- **Description:** "removes 2π discontinuities from a wrapped phase signal by tracking an accumulated phase offset; essential post-processing step after `Arg<T>` or `QuadratureDemod`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **State:** `T _prev`, `T _offset`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+---
+
+### `Conjugate.hpp`
+
+#### `Conjugate<T>`
+- **Description:** "computes the complex conjugate of each input sample: `out[n] = conj(in[n])`; trivially stateless"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Processing:** `processOne` — stateless
+- **Types:** `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `Differentiator.hpp`
+
+#### `Differentiator<T>`
+- **Description:** "first-order backward difference: `out[n] = in[n] − in[n−1]`; first output equals `in[0]` (prev initialised to zero)"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **State:** `T _prev`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
 ### `ExpressionBlocks.hpp`
 
 #### `ExpressionSISO<T>`
@@ -328,6 +384,30 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<DataSet<T>> in`, `PortOut<DataSet<T>> out`
 - **Settings:** `window_size`, `polynomial_order`
 - **Processing:** `processBulk`
+
+#### `DCBlocker<T>`
+- **Description:** "removes the DC component using a causal moving-average estimator: `out = input − mean(last length samples)`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `length` (default 32) — window size in samples
+- **State:** `HistoryBuffer<T> _history`, `T _runningSum`, `std::size_t _filledCount`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+#### `HilbertTransform<T>`
+- **Description:** "produces the analytic signal from a real input: `out[n] = in[n−M] + j·H{in}[n]` using an odd-symmetric Hamming-windowed Type-III FIR filter; the real output is delayed by `(n_taps−1)/2` samples to align with the FIR output"
+- **Ports:** `PortIn<T> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `n_taps` (default 63, must be odd)
+- **State:** `std::vector<T> _taps`, `HistoryBuffer<T> _history`, `std::size_t _center`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+#### `Interpolator<T>` — `Resampling<1UZ, 1UZ, false>`
+- **Description:** "zero-insertion upsampler: each input sample is followed by `interp − 1` zero-valued samples; no anti-imaging filter — chain with an FIR low-pass for proper interpolation"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interp` (default 1) — upsampling factor; sets `output_chunk_size` dynamically
+- **Processing:** `processBulk`
+- **Types:** all numeric types including `UncertainValue<float/double>`
+- **Note:** counterpart to the existing `Decimator<T>`
 
 ---
 
@@ -463,13 +543,15 @@ Generated from a two-pass review of the `add-blocks` branch.
 | Module | Count |
 |---|---|
 | basic | 22 |
-| math | 6 |
+| math | 11 |
 | electrical | 3 |
 | fileio | 2 |
 | fourier | 1 |
-| filter | 8 |
+| filter | 11 |
 | http | 2 |
 | soapy | 1 |
 | testing | 12 |
 | timing | 2 |
-| **Total** | **59** |
+| **Total** | **67** |
+
+**Recently added (this session):** `MovingAverage`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).

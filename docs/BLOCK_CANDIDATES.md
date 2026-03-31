@@ -8,23 +8,19 @@ Priority ratings reflect how foundational or broadly needed each block is:
 - **P2** — high value; commonly used, saves significant graph complexity
 - **P3** — useful addition; covers a specific but well-defined need
 
+Blocks marked **✓ implemented** have been added to the codebase and appear in `BLOCK_INVENTORY.md`.
+
 ---
 
 ## Module: basic
 
 ### Resampling
 
-#### `Decimator<T>` — P1
-Drop every `decimation_factor - 1` of `decimation_factor` input samples, producing a lower-rate output stream. No anti-aliasing filtering (that is the caller's responsibility via a preceding `fir_filter`). The simplest legal downsampler; required for almost every SDR receive chain.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `decimation_factor`
-- **Processing:** `processBulk` — `Resampling<N, 1>`
+#### `Decimator<T>` — P1 ✓ implemented
+Pre-existing as `gr::filter::Decimator<T>` in `blocks/filter/include/gnuradio-4.0/filter/time_domain_filter.hpp`. Equivalent to `Keep1InN` with `offset=0`.
 
-#### `Interpolator<T>` — P1
-Insert `interpolation_factor - 1` zero-valued samples between each input sample, producing a higher-rate output stream. No anti-imaging filtering. Counterpart to `Decimator`.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `interpolation_factor`
-- **Processing:** `processBulk` — `Resampling<1, N>`
+#### `Interpolator<T>` — P1 ✓ implemented
+Implemented as `gr::filter::Interpolator<T>` in `blocks/filter/include/gnuradio-4.0/filter/time_domain_filter.hpp`. Zero-insertion upsampler using `output_chunk_size` for dynamic ratio control.
 
 #### `RationalResampler<T>` — P1
 Resample by a rational factor `interpolation / decimation` with an integrated anti-aliasing/anti-imaging FIR filter. The standard building block for sample-rate conversion between arbitrary rates (e.g. 2 Msps → 48 ksps audio). Equivalent to GNU Radio 3.x `rational_resampler`.
@@ -42,11 +38,8 @@ Arbitrary (non-rational) resampling using a polyphase filter bank with linear in
 
 ### Stream manipulation
 
-#### `Keep1InN<T>` — P1
-Forward one sample for every N consumed; the rest are discarded. A lightweight decimator with no filtering, suitable for decimating already-bandwidth-limited signals or slow control streams.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `n`, `offset` (which of the N to keep)
-- **Processing:** `processBulk` — `Resampling<N, 1>`
+#### `Keep1InN<T>` — P1 ✓ implemented
+Covered by `gr::filter::Decimator<T>` (pre-existing). The `decim` setting controls N; offset support is not separate but offset=0 (first sample kept) is the standard use case.
 
 #### `KeepMInN<T>` — P2
 Forward M consecutive samples out of every N consumed. Generalises `Keep1InN` for burst-mode or sub-frame extraction.
@@ -120,11 +113,8 @@ Multiplies a block of `window_size` samples by a named window function (Hann, Ha
 
 ## Module: math
 
-#### `MovingAverage<T>` — P1
-Computes a causal moving average over the last `length` samples using an efficient running-sum implementation. The most common smoothing primitive; applicable to control loops, envelope detection, and noise reduction.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `length`, `scale` (normalisation factor, default `1/length`)
-- **Processing:** `processOne`
+#### `MovingAverage<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::math::MovingAverage<T>` in `blocks/math/include/gnuradio-4.0/math/MovingAverage.hpp`. O(1)-per-sample running sum with warm-up phase. Supports float, double, complex<float>, complex<double>.
 
 #### `MovingRms<T>` — P2
 Computes a causal moving Root Mean Square over the last `length` samples. Standard for power estimation and automatic gain control feedback.
@@ -144,15 +134,11 @@ Emits `high_value` when `in > threshold`, otherwise `low_value`. Simpler and che
 - **Settings:** `threshold`, `high_value`, `low_value`
 - **Processing:** `processOne`
 
-#### `PhaseUnwrap<T>` — P2
-Removes ±2π discontinuities from a stream of phase values to produce a continuously varying phase signal. Essential post-processing step after `Arg` when tracking phase over time.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Processing:** `processOne`
+#### `PhaseUnwrap<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::PhaseUnwrap<T>` in `blocks/math/include/gnuradio-4.0/math/PhaseUnwrap.hpp`. Supports float, double.
 
-#### `Conjugate<T>` — P2
-Computes the complex conjugate of each input sample. Trivial but frequently needed when implementing correlators, matched filters, or coherent combining.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Processing:** `processOne` — `std::conj(x)`
+#### `Conjugate<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Conjugate<T>` in `blocks/math/include/gnuradio-4.0/math/Conjugate.hpp`. Supports complex<float>, complex<double>.
 
 #### `Accumulator<T>` — P2
 Running sum (integration) of the input stream; optionally resets on a tag. Useful for energy integration, phase accumulation, and Σ-Δ modulation.
@@ -160,10 +146,8 @@ Running sum (integration) of the input stream; optionally resets on a tag. Usefu
 - **Settings:** `reset_tag_key`
 - **Processing:** `processOne`
 
-#### `Differentiator<T>` — P2
-Computes `out[n] = in[n] - in[n-1]`. First-order discrete differentiation; used for FM demodulation (instantaneous frequency), edge detection, and derivative control.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Processing:** `processOne`
+#### `Differentiator<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Differentiator<T>` in `blocks/math/include/gnuradio-4.0/math/Differentiator.hpp`. Supports float, double, complex<float>, complex<double>.
 
 #### `PeakDetector<T>` — P2
 Detects local maxima (and optionally minima) in the stream and publishes a tag at each detected peak. Configurable look-ahead window and minimum peak height.
@@ -187,17 +171,11 @@ Computes the cross-correlation between two input streams over a sliding window. 
 
 ## Module: filter
 
-#### `DCBlocker<T>` — P1
-Removes the DC component from the input using a single-pole high-pass IIR filter (`y[n] = x[n] - x[n-1] + α·y[n-1]`). Ubiquitous in SDR receive chains; avoids using a general IIR block just for this common case.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `length` (controls the pole location α)
-- **Processing:** `processOne`
+#### `DCBlocker<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::filter::DCBlocker<T>` in `blocks/filter/include/gnuradio-4.0/filter/DCBlocker.hpp`. Uses moving-average subtraction (FIR, linear-phase) rather than single-pole IIR. Supports float, double, complex<float>, complex<double>.
 
-#### `HilbertTransform<T>` — P1
-Produces the analytic signal from a real-valued input: `out = in + j·H{in}`, where `H{}` is the Hilbert transform implemented as an odd-symmetric FIR filter. Converts real to complex, enabling downstream quadrature processing.
-- **Ports:** `PortIn<float> in`, `PortOut<std::complex<float>> out`
-- **Settings:** `n_taps`, `window_type`
-- **Processing:** `processBulk`
+#### `HilbertTransform<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::filter::HilbertTransform<T>` in `blocks/filter/include/gnuradio-4.0/filter/HilbertTransform.hpp`. Odd-symmetric Hamming-windowed Type-III FIR. Output is aligned `in[n-M] + j·H{in}[n]`. Supports float, double.
 
 #### `Squelch<T>` — P2
 Gates the output stream based on the measured input power: passes samples when power exceeds `threshold`, suppresses (outputs zeros or stops) otherwise. Foundational block for voice/burst radio receivers.
@@ -251,11 +229,8 @@ Estimates the noise floor from a silent reference interval and subtracts it in t
 
 The framework currently has no demodulation blocks. The following cover the most common analog and digital cases.
 
-#### `QuadratureDemod<T>` — P1
-FM demodulator: computes instantaneous frequency from the argument of the product of each sample with the conjugate of the previous sample: `out[n] = arg(in[n] · conj(in[n-1])) · gain`. The standard building block for FM broadcast and narrowband FM.
-- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<T> out`
-- **Settings:** `gain` (typically `sample_rate / (2π · max_deviation)`)
-- **Processing:** `processOne`
+#### `QuadratureDemod<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::math::QuadratureDemod<T>` in `blocks/math/include/gnuradio-4.0/math/QuadratureDemod.hpp`. Supports complex<float>, complex<double>; outputs the corresponding real scalar type.
 
 #### `AmDemod<T>` — P2
 AM envelope detector: computes `abs(in)` and optionally removes the carrier DC. Handles both DSB-LC and DSB-SC.
@@ -433,11 +408,61 @@ Estimates the instantaneous frequency of a power-grid waveform (45–65 Hz range
 
 ---
 
+## New unconsidered blocks (not in original candidates list)
+
+These blocks were identified as genuine gaps not covered by the original P1/P2/P3 list above.
+
+### Module: math
+
+#### `AgcBlock<T>` — P2 (new)
+Automatic Gain Control: tracks output power using an exponential moving average and adjusts a scalar gain each sample to maintain a configurable target RMS level. Without this, users must chain `MovingRms + MultiplyConst` manually. Fundamental for any complete radio receive chain.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `target_power` (linear RMS², default 1.0), `attack_rate` (gain increase per sample, 0–1), `decay_rate` (gain reduction per sample, 0–1), `max_gain`, `min_gain`
+- **Processing:** `processOne` — EMA power estimate + gain clamp + `output = input * gain`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+#### `PowerToDb<T>` / `DbToPower<T>` — P2 (new)
+Converts between linear power (or amplitude) and decibels. Used after `Abs<T>`, `MovingRms`, or FFT magnitude outputs for display and logging. Ubiquitous in RF work; avoids scattering `10*log10()` calls through user code.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `ref` (reference level, default 1.0); `amplitude_not_power` (bool; switches between 20·log10 and 10·log10)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`
+
+#### `Limiter<T>` — P2 (new)
+Symmetric hard amplitude limiter: clips any sample with `|x| > limit` to `±limit` for real types, or scales the magnitude to `limit` while preserving direction for complex types. Distinct from `Clamp` (asymmetric min/max bounds); models analogue saturation and prevents downstream overflow.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `limit` (positive scalar, default 1.0)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### Module: filter
+
+#### `CicDecimator<T>` / `CicInterpolator<T>` — P2 (new)
+Cascade-Integrator-Comb (CIC) filters for very high decimation/interpolation ratios (64×–1024×) without multipliers. The standard FPGA→CPU sample-rate handoff primitive; not covered by `Decimator` (raw drop, no filtering) or `RationalResampler` (FIR-based, impractical at high ratios).
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings (decimator):** `decimation` (R), `n_stages` (default 5), `differential_delay` (M, default 1); applies gain compensation `÷ R^n_stages`
+- **Settings (interpolator):** `interpolation` (L), `n_stages`, `differential_delay`
+- **Processing:** `processBulk` — `Resampling<R,1>` / `Resampling<1,L>` (dynamic)
+- **Types:** `int16_t`, `int32_t`, `float`, `double`
+
+### Module: basic / testing
+
+#### `EnergyDetector<T>` — P2 (new)
+Computes a moving energy estimate (running sum of `|x[n]|²`) and publishes a named tag on threshold crossings. Used for burst and preamble detection in packet radio and radar. Distinct from `Squelch` (gates output) and `SchmittTrigger` (operates on amplitude, not energy).
+- **Ports:** `PortIn<T> in`, `PortOut<T> out` (pass-through; tags injected on edges)
+- **Settings:** `window_size`, `threshold` (linear energy), `tag_name` (default `"energy_detect"`), `hysteresis` (prevents chatter)
+- **Processing:** `processBulk` — HistoryBuffer + running |x|² sum; `mergedInputTag` / `publishTag` pattern
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
 ## Summary by priority
 
-| Priority | Count | Examples |
-|---|---|---|
-| P1 | 12 | `Decimator`, `Interpolator`, `RationalResampler`, `Keep1InN`, `StreamToVector`, `VectorToStream`, `MovingAverage`, `DCBlocker`, `HilbertTransform`, `IFFT`, `QuadratureDemod`, `PLL` |
-| P2 | 33 | `PolyphaseArbitraryResampler`, `KeepMInN`, `StreamMux`, `StreamDemux`, `Repeat`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `MovingRms`, `Clamp`, `Threshold`, `PhaseUnwrap`, `Conjugate`, `Accumulator`, `Differentiator`, `PeakDetector`, `Correlation`, `Squelch`, `Convolver`, `AdaptiveLmsFilter`, `PolyphaseChannelizer`, `AmDemod`, `CostasLoop`, `ClockRecoveryMM`, `PackBits`, `UnpackBits`, `DifferentialEncoder`, `DifferentialDecoder`, `CrcCompute`, `WavFileSource/Sink`, `SigMFSource/Sink`, `UdpSource/Sink`, `ZmqSource/Sink`, `AudioSource/Sink`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `PhasorEstimator`, `GridFrequencyEstimator` |
-| P3 | 8 | `PolyphaseArbitraryResampler`, `Histogram`, `MedianFilter`, `SpectralSubtractor`, `Scrambler`, `CsvFileSink/Source` |
-| **Total** | **53** | |
+| Priority | Count | ✓ Implemented | Remaining |
+|---|---|---|---|
+| P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
+| P2 | 33+5 new | `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓ (3/38) | all others |
+| P3 | 8 | — | all |
+| **Total** | **58** | **10 implemented** | **48 remaining** |
+
+**New unconsidered blocks added to this file:** `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (5 blocks, all P2).
