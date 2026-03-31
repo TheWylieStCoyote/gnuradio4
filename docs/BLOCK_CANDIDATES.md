@@ -399,13 +399,13 @@ Maximum-likelihood decoder for rate-1/2 or rate-1/3 convolutional codes using th
 
 ## Module: ofdm (new module suggested)
 
-#### `CyclicPrefixAdd<T>` — P2
+#### `CyclicPrefixAdd<T>` — P2 ✓ implemented
 Prepends a cyclic prefix of length `cp_length` to each block of `fft_size` samples. The cyclic prefix copies the last `cp_length` samples of the IFFT output to the front, converting linear convolution to circular convolution and eliminating inter-symbol interference in multipath channels. Required to make the existing `IFFT` block useful for OFDM transmission.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `fft_size`, `cp_length`
 - **Processing:** `processBulk` — `Resampling<fft_size, fft_size + cp_length>`
 
-#### `CyclicPrefixRemove<T>` — P2
+#### `CyclicPrefixRemove<T>` — P2 ✓ implemented
 Strips the `cp_length`-sample cyclic prefix from each received OFDM symbol before passing the remaining `fft_size` samples to the FFT block. Counterpart to `CyclicPrefixAdd`.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `fft_size`, `cp_length`

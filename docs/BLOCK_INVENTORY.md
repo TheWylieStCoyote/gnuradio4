@@ -750,6 +750,26 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+## Module: ofdm (`blocks/ofdm/`)
+
+### `CyclicPrefixAdd.hpp`
+
+#### `CyclicPrefixAdd<T>`
+- **Description:** "prepend a cyclic prefix to each OFDM symbol"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size`, `cp_length`
+- **Processing:** `processBulk` — copies last `cp_length` samples of the input before the full symbol; dynamic `Resampling<1,1,false>` with `input_chunk_size = fft_size`, `output_chunk_size = fft_size + cp_length`
+
+### `CyclicPrefixRemove.hpp`
+
+#### `CyclicPrefixRemove<T>`
+- **Description:** "remove the cyclic prefix from each received OFDM symbol"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size`, `cp_length`
+- **Processing:** `processBulk` — discards first `cp_length` samples, copies remainder; dynamic `Resampling<1,1,false>` with `input_chunk_size = fft_size + cp_length`, `output_chunk_size = fft_size`
+
+---
+
 ## Summary
 
 | Module | Count |
@@ -763,7 +783,8 @@ Generated from a two-pass review of the `add-blocks` branch.
 | http | 2 |
 | soapy | 1 |
 | testing | 12 |
+| ofdm | 2 |
 | timing | 2 |
-| **Total** | **75** |
+| **Total** | **77** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm).
