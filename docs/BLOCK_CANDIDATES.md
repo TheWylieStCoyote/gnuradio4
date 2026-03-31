@@ -169,18 +169,11 @@ Implemented as `gr::blocks::math::MovingRms<T>` in `blocks/math/include/gnuradio
 #### `Clamp<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::Clamp<T>` in `blocks/math/include/gnuradio-4.0/math/Clamp.hpp`. For complex types, real and imaginary parts are clamped independently. Supports float, double, complex<float>, complex<double>.
 
-#### `Threshold<T>` — P2
-Emits `high_value` when `in > threshold`, otherwise `low_value`. Simpler and cheaper than `SchmittTrigger`; no hysteresis, no interpolation, no tag generation. Suitable for boolean-valued control paths.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `threshold`, `high_value`, `low_value`
-- **Processing:** `processOne`
+#### `Threshold<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Threshold<T>` in `blocks/math/include/gnuradio-4.0/math/Threshold.hpp`.
 
-#### `SchmittTrigger<T>` — P2
-Hysteretic comparator: output transitions to `high_value` only when input crosses `upper_threshold`, and back to `low_value` only when input falls below `lower_threshold`. Prevents rapid toggling on noisy signals. Distinct from `Threshold` (which has no hysteresis) and `EnergyDetector` (which operates on windowed energy rather than instantaneous value).
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `upper_threshold`, `lower_threshold`, `high_value` (default 1), `low_value` (default 0)
-- **State:** `bool _state` — current output level
-- **Processing:** `processOne`
+#### `SchmittTrigger<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::SchmittTrigger<T>` in `blocks/math/include/gnuradio-4.0/math/SchmittTrigger.hpp`.
 
 #### `Goertzel<T>` — P2
 Computes the DFT magnitude at a single configurable frequency using Goertzel's second-order recursive algorithm. O(N) per block with far lower overhead than a full FFT when only one or a few frequency bins are needed (DTMF detection, tone detection, FSK demodulation).
@@ -224,12 +217,8 @@ Computes `r[k] = Σ x[n]·conj(x[n-k])` for lags k = 0..`max_lag` over a sliding
 - **Settings:** `window_size`, `max_lag`
 - **Processing:** `processBulk`
 
-#### `InstantaneousFrequency<T>` — P2
-Computes the instantaneous frequency of a complex signal per sample: `f[n] = arg(x[n]·conj(x[n-1])) / (2π·Ts)`. Mathematically equivalent to `PhaseUnwrap` + `Differentiator` in series but avoids the intermediate port and an extra `2π` normalisation step. Common in FM demodulation analysis and vibration monitoring.
-- **Ports:** `PortIn<T> in` (complex), `PortOut<value_type> out` (real)
-- **Settings:** `sample_rate` (used to scale output to Hz; set to 1 for normalised frequency)
-- **State:** `T _prev`
-- **Processing:** `processOne`
+#### `InstantaneousFrequency<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::InstantaneousFrequency<T>` in `blocks/math/include/gnuradio-4.0/math/InstantaneousFrequency.hpp`.
 
 ---
 
@@ -580,7 +569,7 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓ (13/55) | all others |
+| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓ (16/55) | all others |
 | P3 | 9+4 new | — | all |
 | **Total** | **82** | **20 implemented** | **62 remaining** |
 

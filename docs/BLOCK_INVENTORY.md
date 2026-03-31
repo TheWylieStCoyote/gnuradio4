@@ -357,6 +357,41 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `InstantaneousFrequency.hpp`
+
+#### `InstantaneousFrequency<T>`
+- **Description:** "computes the instantaneous frequency of a complex analytic signal per sample: `f[n] = arg(x[n]·conj(x[n-1])) · sample_rate / (2π)`; first output is zero"
+- **Ports:** `PortIn<T> in` (complex), `PortOut<value_type> out` (real scalar)
+- **Settings:** `sample_rate` (default 1; set to 1 for normalised frequency in cycles/sample)
+- **State:** `T _prev`
+- **Processing:** `processOne`
+- **Types:** `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `SchmittTrigger.hpp`
+
+#### `SchmittTrigger<T>`
+- **Description:** "hysteretic comparator: output transitions to `high_value` only when input rises above `upper_threshold`, and back to `low_value` only when input falls below `lower_threshold`; prevents chatter on noisy signals"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `upper_threshold` (default 0.5), `lower_threshold` (default -0.5), `high_value` (default 1), `low_value` (default 0)
+- **State:** `bool _state`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+---
+
+### `Threshold.hpp`
+
+#### `Threshold<T>`
+- **Description:** "hard threshold comparator: emits `high_value` when input exceeds `threshold`, otherwise `low_value`; no hysteresis — see `SchmittTrigger` for noise-immune switching"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `threshold` (default 0), `high_value` (default 1), `low_value` (default 0)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`
+
+---
+
 ### `ExpressionBlocks.hpp`
 
 #### `ExpressionSISO<T>`
@@ -674,7 +709,7 @@ Generated from a two-pass review of the `add-blocks` branch.
 | Module | Count |
 |---|---|
 | basic | 22 |
-| math | 11 |
+| math | 14 |
 | electrical | 3 |
 | fileio | 2 |
 | fourier | 1 |
@@ -683,6 +718,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | soapy | 1 |
 | testing | 12 |
 | timing | 2 |
-| **Total** | **68** |
+| **Total** | **71** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).
