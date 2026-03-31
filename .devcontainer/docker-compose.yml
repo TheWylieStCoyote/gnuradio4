@@ -10,7 +10,7 @@ services:
     volumes:
       - type: bind
         source: ..
-        target: /workspaces/python-test
+        target: /workspaces/add-blocks
       - gnuradio4-ccache:/home/user/.cache/ccache
 
 volumes:
