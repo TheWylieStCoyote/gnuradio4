@@ -1,5 +1,7 @@
 add_ut_test(qa_Accumulator)
+add_ut_test(qa_Clamp)
 add_ut_test(qa_Math)
+add_ut_test(qa_MovingRms)
 add_ut_test(qa_ExpressionBlocks)
 add_ut_test(qa_MathUtils)
 add_ut_test(qa_MovingAverage)

@@ -10,7 +10,9 @@ gr_add_block_library(
   MAKE_SHARED_LIBRARY
   HEADERS
   include/gnuradio-4.0/math/Accumulator.hpp
+  include/gnuradio-4.0/math/Clamp.hpp
   include/gnuradio-4.0/math/Conjugate.hpp
+  include/gnuradio-4.0/math/MovingRms.hpp
   include/gnuradio-4.0/math/Differentiator.hpp
   include/gnuradio-4.0/math/ExpressionBlocks.hpp
   include/gnuradio-4.0/math/Math.hpp

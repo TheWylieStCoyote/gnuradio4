@@ -116,17 +116,11 @@ Multiplies a block of `window_size` samples by a named window function (Hann, Ha
 #### `MovingAverage<T>` — P1 ✓ implemented
 Implemented as `gr::blocks::math::MovingAverage<T>` in `blocks/math/include/gnuradio-4.0/math/MovingAverage.hpp`. O(1)-per-sample running sum with warm-up phase. Supports float, double, complex<float>, complex<double>.
 
-#### `MovingRms<T>` — P2
-Computes a causal moving Root Mean Square over the last `length` samples. Standard for power estimation and automatic gain control feedback.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `length`
-- **Processing:** `processOne`
+#### `MovingRms<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::MovingRms<T>` in `blocks/math/include/gnuradio-4.0/math/MovingRms.hpp`. Output is always real `value_type`. Supports float, double, complex<float>, complex<double>.
 
-#### `Clamp<T>` — P2
-Clips output values to `[min_value, max_value]`. Used to constrain control signals, prevent saturation, or implement a simple limiter.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `min_value`, `max_value`
-- **Processing:** `processOne`
+#### `Clamp<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Clamp<T>` in `blocks/math/include/gnuradio-4.0/math/Clamp.hpp`. For complex types, real and imaginary parts are clamped independently. Supports float, double, complex<float>, complex<double>.
 
 #### `Threshold<T>` — P2
 Emits `high_value` when `in > threshold`, otherwise `low_value`. Simpler and cheaper than `SchmittTrigger`; no hysteresis, no interpolation, no tag generation. Suitable for boolean-valued control paths.

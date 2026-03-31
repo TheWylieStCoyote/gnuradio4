@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**68 blocks** across 10 modules.
+**70 blocks** across 10 modules.
 
 ---
 
@@ -203,6 +203,17 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `Clamp.hpp`
+
+#### `Clamp<T>`
+- **Description:** "clips each sample to [min, max]; for complex types, real and imaginary parts are clamped independently"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `min` (default -1), `max` (default 1)
+- **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
 ### `Accumulator.hpp`
 
 #### `Accumulator<T>`
@@ -223,6 +234,18 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Settings:** `length` (default 16) — window size in samples
 - **State:** `HistoryBuffer<T> _history`, `T _runningSum`, `std::size_t _filledCount`
 - **Processing:** `processOne` — `_runningSum * (1 / min(_filledCount, len))`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `MovingRms.hpp`
+
+#### `MovingRms<T>`
+- **Description:** "causal root-mean-square estimator over a sliding window; computes `sqrt(mean(|x|²))` using an O(1)-per-sample running-sum; output is always real `value_type`"
+- **Ports:** `PortIn<T> in`, `PortOut<value_type> out` (real scalar)
+- **Settings:** `length` (default 16) — window size in samples
+- **State:** `HistoryBuffer<value_type> _powerHistory`, `value_type _runningPower`, `std::size_t _filledCount`
+- **Processing:** `processOne`
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
 ---
@@ -566,4 +589,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `MovingAverage`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).
+**Recently added (this session):** `Accumulator`, `Clamp`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator` (filter).
