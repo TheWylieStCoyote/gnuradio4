@@ -19,5 +19,17 @@ target_link_libraries(qa_SvdDenoiser PRIVATE gr-filter)
 add_ut_test(qa_SavitzkyGolayFilter)
 target_link_libraries(qa_SavitzkyGolayFilter PRIVATE gr-filter)
 
+add_ut_test(qa_BiquadFilter)
+target_link_libraries(qa_BiquadFilter PRIVATE gr-filter)
+
+add_ut_test(qa_FractionalDelayLine)
+target_link_libraries(qa_FractionalDelayLine PRIVATE gr-filter)
+
 add_ut_test(qa_WienerFilter)
 target_link_libraries(qa_WienerFilter PRIVATE gr-filter)
+
+add_ut_test(qa_AdaptiveLmsFilter)
+target_link_libraries(qa_AdaptiveLmsFilter PRIVATE gr-filter)
+
+add_ut_test(qa_Squelch)
+target_link_libraries(qa_Squelch PRIVATE gr-filter)
