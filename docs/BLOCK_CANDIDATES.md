@@ -175,11 +175,8 @@ Implemented as `gr::blocks::math::Threshold<T>` in `blocks/math/include/gnuradio
 #### `SchmittTrigger<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::SchmittTrigger<T>` in `blocks/math/include/gnuradio-4.0/math/SchmittTrigger.hpp`.
 
-#### `Goertzel<T>` — P2
-Computes the DFT magnitude at a single configurable frequency using Goertzel's second-order recursive algorithm. O(N) per block with far lower overhead than a full FFT when only one or a few frequency bins are needed (DTMF detection, tone detection, FSK demodulation).
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `target_frequency`, `sample_rate`, `block_size`
-- **Processing:** `processBulk` — emits one magnitude value per block of `block_size` samples
+#### `Goertzel<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::Goertzel<T>` in `blocks/math/include/gnuradio-4.0/math/Goertzel.hpp`.
 
 #### `PhaseUnwrap<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::PhaseUnwrap<T>` in `blocks/math/include/gnuradio-4.0/math/PhaseUnwrap.hpp`. Supports float, double.
@@ -211,11 +208,8 @@ Computes the cross-correlation between two input streams over a sliding window. 
 - **Settings:** `window_size`
 - **Processing:** `processBulk`
 
-#### `AutoCorrelation<T>` — P2
-Computes `r[k] = Σ x[n]·conj(x[n-k])` for lags k = 0..`max_lag` over a sliding window of `window_size` samples. Distinct from `Correlation` (which cross-correlates two separate streams). Needed for OFDM timing synchronisation (CP-based autocorrelator), carrier frequency offset estimation from the CP, and channel sounding.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out` — emits `max_lag + 1` correlation values per input block
-- **Settings:** `window_size`, `max_lag`
-- **Processing:** `processBulk`
+#### `AutoCorrelation<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::math::AutoCorrelation<T>` in `blocks/math/include/gnuradio-4.0/math/AutoCorrelation.hpp`.
 
 #### `InstantaneousFrequency<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::InstantaneousFrequency<T>` in `blocks/math/include/gnuradio-4.0/math/InstantaneousFrequency.hpp`.
@@ -569,7 +563,7 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓ (16/55) | all others |
+| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓, `Goertzel`✓, `AutoCorrelation`✓ (18/55) | all others |
 | P3 | 9+4 new | — | all |
 | **Total** | **82** | **20 implemented** | **62 remaining** |
 

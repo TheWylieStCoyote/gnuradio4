@@ -357,6 +357,28 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `AutoCorrelation.hpp`
+
+#### `AutoCorrelation<T>`
+- **Description:** "biased autocorrelation estimator: r[k] = (1/W)·Σ x[n]·conj(x[n-k]) for lags k = 0..max_lag; consumes `window_size` inputs per call and emits `max_lag+1` outputs"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `window_size` (default 64), `max_lag` (default 16)
+- **Processing:** `processBulk` — `Resampling<1,1,false>`; `input_chunk_size = window_size`, `output_chunk_size = max_lag+1`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+---
+
+### `Goertzel.hpp`
+
+#### `Goertzel<T>`
+- **Description:** "single-frequency DFT magnitude via Goertzel's second-order IIR; emits one magnitude value per `block_size` input samples; O(N) per block with far lower overhead than a full FFT when only one frequency bin is needed"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `target_frequency` (default 1000 Hz), `sample_rate` (default 8000 Hz), `block_size` (default 128)
+- **Processing:** `processBulk` — `Resampling<1,1,false>`; `input_chunk_size = block_size`, `output_chunk_size = 1`
+- **Types:** `float`, `double`
+
+---
+
 ### `InstantaneousFrequency.hpp`
 
 #### `InstantaneousFrequency<T>`
@@ -709,7 +731,7 @@ Generated from a two-pass review of the `add-blocks` branch.
 | Module | Count |
 |---|---|
 | basic | 22 |
-| math | 14 |
+| math | 16 |
 | electrical | 3 |
 | fileio | 2 |
 | fourier | 1 |
@@ -718,6 +740,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | soapy | 1 |
 | testing | 12 |
 | timing | 2 |
-| **Total** | **71** |
+| **Total** | **73** |
 
 **Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter).
