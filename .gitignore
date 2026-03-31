@@ -49,7 +49,7 @@ language.settings.xml
 CMakeLists.txt.user
 .kdev4/
 *.kdev4
-.devcontainer/
+.devcontainer/.env
 
 # python venv files
 virtualenv/

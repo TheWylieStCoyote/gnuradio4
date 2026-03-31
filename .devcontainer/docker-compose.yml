@@ -1,0 +1,17 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+      args:
+        USER_UID: ${USER_UID:-1000}
+    network_mode: host
+    command: sleep infinity
+    volumes:
+      - type: bind
+        source: ..
+        target: /workspaces/python-test
+      - gnuradio4-ccache:/home/user/.cache/ccache
+
+volumes:
+  gnuradio4-ccache:
