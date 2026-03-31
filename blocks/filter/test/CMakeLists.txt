@@ -45,3 +45,6 @@ target_link_libraries(qa_KalmanFilter PRIVATE gr-filter)
 
 add_ut_test(qa_MedianFilter)
 target_link_libraries(qa_MedianFilter PRIVATE gr-filter)
+
+add_ut_test(qa_RationalResampler)
+target_link_libraries(qa_RationalResampler PRIVATE gr-filter)
