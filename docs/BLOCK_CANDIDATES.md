@@ -125,6 +125,19 @@ Emits `high_value` when `in > threshold`, otherwise `low_value`. Simpler and che
 - **Settings:** `threshold`, `high_value`, `low_value`
 - **Processing:** `processOne`
 
+#### `SchmittTrigger<T>` — P2
+Hysteretic comparator: output transitions to `high_value` only when input crosses `upper_threshold`, and back to `low_value` only when input falls below `lower_threshold`. Prevents rapid toggling on noisy signals. Distinct from `Threshold` (which has no hysteresis) and `EnergyDetector` (which operates on windowed energy rather than instantaneous value).
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `upper_threshold`, `lower_threshold`, `high_value` (default 1), `low_value` (default 0)
+- **State:** `bool _state` — current output level
+- **Processing:** `processOne`
+
+#### `Goertzel<T>` — P2
+Computes the DFT magnitude at a single configurable frequency using Goertzel's second-order recursive algorithm. O(N) per block with far lower overhead than a full FFT when only one or a few frequency bins are needed (DTMF detection, tone detection, FSK demodulation).
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `target_frequency`, `sample_rate`, `block_size`
+- **Processing:** `processBulk` — emits one magnitude value per block of `block_size` samples
+
 #### `PhaseUnwrap<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::PhaseUnwrap<T>` in `blocks/math/include/gnuradio-4.0/math/PhaseUnwrap.hpp`. Supports float, double.
 
@@ -188,6 +201,21 @@ Applies a sliding-window median filter to reject impulse noise. More effective t
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `window_size`
 - **Processing:** `processBulk`
+
+#### `FractionalDelayLine<T>` — P2
+Delays a signal by a non-integer number of samples using a Farrow filter (polynomial interpolation) or a Lagrange FIR. Required wherever timing alignment at sub-sample resolution is needed: clock recovery feedback, pre-matched-filter alignment, and multi-channel coherent combining.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `delay` (fractional samples), `n_taps` (filter order, default 8)
+- **State:** `HistoryBuffer<T> _history`
+- **Processing:** `processOne` or `processBulk`
+
+#### `WienerFilter<T>` — P2
+Computes the optimal linear FIR filter in the MMSE sense by solving the Wiener-Hopf normal equations: `R_xx · h = r_xd`, where `R_xx` is the input autocorrelation matrix and `r_xd` is the cross-correlation between input and desired signal. Uses the Levinson-Durbin recursion for O(n²) solution. Distinct from `AdaptiveLmsFilter` which tracks a *varying* optimum continuously; this block derives the best *fixed* taps from a training burst and then applies them as a static FIR. Typical uses: supervised denoising, offline channel equalisation, and system identification when a clean reference signal is available.
+- **Ports:** `PortIn<T> in`, `PortIn<T> desired`, `PortOut<T> out`
+- **Settings:** `n_taps`, `training_length` (samples used to estimate statistics; 0 = use all input)
+- **State:** `std::vector<T> _taps` (recomputed in `settingsChanged` or on a tagged training burst)
+- **Processing:** `processBulk`
+- **Implementation notes:** Training and filtering can be separated: a `settingsChanged` path computes taps from pre-supplied `autocorr`/`crosscorr` vectors, while a streaming path accumulates statistics over `training_length` samples before switching to filter mode.
 
 ---
 
@@ -278,6 +306,11 @@ Computes a CRC-8, CRC-16, or CRC-32 checksum over a burst delimited by tags and 
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `poly`, `initial_value`, `mode` (append/verify)
 - **Processing:** `processBulk` — `NoDefaultTagForwarding`
+
+#### `GrayCodeEncoder` / `GrayCodeDecoder` — P3
+Converts between natural binary and Gray code (reflected binary). Each output bit differs from the corresponding input by at most one bit transition per symbol, which reduces errors in ADC/DAC index decoding and FSK symbol mapping.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne` — stateless (`n ^ (n >> 1)` for encode; iterative XOR-fold for decode)
 
 ---
 
@@ -425,8 +458,10 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 33+5 new | `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓ (3/38) | all others |
-| P3 | 8 | — | all |
-| **Total** | **58** | **10 implemented** | **48 remaining** |
+| P2 | 38+6 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓ (12/44) | all others |
+| P3 | 9+1 new | — | all |
+| **Total** | **65** | **19 implemented** | **46 remaining** |
 
-**New unconsidered blocks added to this file:** `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (5 blocks, all P2).
+**New blocks added to this file (session 2+):**
+- Unconsidered originally: `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (5 blocks, all P2)
+- From further review: `SchmittTrigger`, `Goertzel`, `FractionalDelayLine` (P2); `GrayCodeEncoder/Decoder` (P3)
