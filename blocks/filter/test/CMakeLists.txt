@@ -36,3 +36,9 @@ target_link_libraries(qa_Squelch PRIVATE gr-filter)
 
 add_ut_test(qa_Convolver)
 target_link_libraries(qa_Convolver PRIVATE gr-filter)
+
+add_ut_test(qa_SteadyStateKalman)
+target_link_libraries(qa_SteadyStateKalman PRIVATE gr-filter)
+
+add_ut_test(qa_KalmanFilter)
+target_link_libraries(qa_KalmanFilter PRIVATE gr-filter)
