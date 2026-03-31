@@ -32,6 +32,7 @@ gr_add_block_library(
   include/gnuradio-4.0/math/InstantaneousFrequency.hpp
   include/gnuradio-4.0/math/SchmittTrigger.hpp
   include/gnuradio-4.0/math/Threshold.hpp
+  include/gnuradio-4.0/math/Histogram.hpp
   LINK_LIBRARIES
   gr-math)
 
