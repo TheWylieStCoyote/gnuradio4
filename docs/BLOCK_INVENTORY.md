@@ -173,6 +173,107 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+### `Head.hpp`
+
+#### `Head<T>`
+- **Description:** "forwards the first `n_samples` samples then calls `requestStop()`; the stream equivalent of Unix `head`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `n_samples` (default 1024)
+- **Processing:** `processBulk`
+- **Types:** all numeric types
+
+### `Skip.hpp`
+
+#### `Skip<T>`
+- **Description:** "discards the first `n_samples` samples then passes all subsequent samples through unchanged"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `n_samples` (default 0)
+- **Processing:** `processBulk`
+- **Types:** all numeric types
+
+### `ChirpSource.hpp`
+
+#### `ChirpSource<T>`
+- **Description:** "linear FM chirp source: sweeps from `f_start` to `f_end` over `sweep_time` seconds then resets"
+- **Ports:** `PortOut<T> out`
+- **Settings:** `f_start`, `f_end`, `sweep_time`, `sample_rate` (default 1.0)
+- **Processing:** `processBulk` — source block
+- **Types:** `float`, `double`
+
+### `AwgnChannel.hpp`
+
+#### `AwgnChannel<T>`
+- **Description:** "additive white Gaussian noise channel; adds normally-distributed noise with variance `noise_power` to every sample"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `noise_power` (default 0.01)
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+### `StreamTagger.hpp`
+
+#### `StreamTagger<T>`
+- **Description:** "injects a tag every `interval` samples containing the running sample count; `interval = 0` disables tagging"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interval` (default 1024), `key` (tag key name, default "stream_tagger")
+- **Processing:** `processOne`
+- **Types:** all numeric types
+
+### `TagGate.hpp`
+
+#### `TagGate<T>`
+- **Description:** "opens or closes the signal path based on a named boolean tag; samples are zeroed (not dropped) when the gate is closed"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `key` (tag key to watch, default "gate"), `initially_open` (default false)
+- **Processing:** `processOne`
+- **Types:** all numeric types
+
+### `TagDebugSink.hpp`
+
+#### `TagDebugSink<T>`
+- **Description:** "sink block that logs all received tags to stdout for debugging; stores them for programmatic access in tests"
+- **Ports:** `PortIn<T> in`
+- **Settings:** `log_to_stdout` (default true)
+- **Processing:** `processBulk`
+- **Types:** all numeric types
+
+### `WindowApply.hpp`
+
+#### `WindowApply<T>`
+- **Description:** "multiplies each block of `fft_size` input samples by the specified window function from `gr::algorithm::window`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size` (default 1024), `window_type` (default "hann")
+- **Processing:** `processBulk` — `input_chunk_size = output_chunk_size = fft_size`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `StreamMux.hpp`
+
+#### `StreamMux<T>`
+- **Description:** "round-robin interleave from `n_inputs` dynamic input ports; outputs `chunk_size` samples from each port in sequence"
+- **Ports:** `std::vector<PortIn<T>> inputs`, `PortOut<T> out`
+- **Settings:** `n_inputs` (default 2), `chunk_size` (default 1)
+- **Processing:** `processBulk` — dynamic `Resampling<1,1,false>`
+- **Types:** all numeric types
+
+### `StreamDemux.hpp`
+
+#### `StreamDemux<T>`
+- **Description:** "round-robin split to `n_outputs` dynamic output ports; forwards `chunk_size` input samples to each port in sequence"
+- **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> outputs`
+- **Settings:** `n_outputs` (default 2), `chunk_size` (default 1)
+- **Processing:** `processBulk` — dynamic `Resampling<1,1,false>`
+- **Types:** all numeric types
+
+### `KeepMInN.hpp`
+
+#### `KeepMInN<T>`
+- **Description:** "forwards the first `m` of every `n` input samples and discards the remaining `n - m`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `m` (default 1), `n` (default 2)
+- **Processing:** `processBulk` — dynamic `Resampling<1,1,false>`
+- **Types:** all numeric types
+
+---
+
 ## Module: math (`blocks/math/`)
 
 ### `Math.hpp`
@@ -482,6 +583,33 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** multi-phase P/Q/S inputs; outputs for unbalance ratio and total power
 - **Processing:** `processBulk`
 
+#### `PhasorEstimator<T>`
+- **Description:** "single-frequency phasor estimator using the Goertzel algorithm; outputs one complex phasor per `block_size` input samples"
+- **Ports:** `PortIn<T> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `frequency` (default 50.0), `sample_rate` (default 1000.0), `block_size` (default 100)
+- **Processing:** `processBulk` — `Resampling<1,1,false>` with `input_chunk_size = block_size`, `output_chunk_size = 1`
+- **Types:** `float`, `double`
+
+#### `HarmonicAnalyser<T>`
+- **Description:** "analyses harmonics at the fundamental and `n_harmonics` multiples using Goertzel; outputs a `DataSet<T>` with amplitudes and phases"
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `fundamental` (default 50.0), `sample_rate` (default 10000.0), `n_harmonics` (default 5), `block_size` (default 200)
+- **Processing:** `processBulk` — `input_chunk_size = block_size`, `output_chunk_size = 1`
+- **Types:** `float`, `double`
+
+#### `TotalHarmonicDistortion<T>`
+- **Description:** "computes THD from a `DataSet<T>` of harmonic amplitudes produced by `HarmonicAnalyser`; THD = sqrt(V2²+…+Vn²) / V1"
+- **Ports:** `PortIn<DataSet<T>> in`, `PortOut<T> out`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+#### `GridFrequencyEstimator<T>`
+- **Description:** "estimates mains frequency from positive-going zero crossings; outputs one frequency estimate per crossing pair"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `sample_rate` (default 10000.0), `nominal_frequency` (default 50.0)
+- **Processing:** `processBulk` — variable output rate
+- **Types:** `float`, `double`
+
 ---
 
 ## Module: fileio (`blocks/fileio/`)
@@ -511,6 +639,24 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in` (real or complex), `PortOut<DataSet<U>> out`
 - **Settings:** `fft_size`, `window_type`, `sample_rate`, `output_in_db`
 - **Processing:** `processBulk`
+
+### `ifft.hpp`
+
+#### `IFFT<T>`
+- **Description:** "inverse discrete Fourier Transform using the conjugate-symmetry trick: `IFFT(X) = conj(FFT(conj(X))) / N`"
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `fft_size` (default 1024)
+- **Processing:** `processBulk` — dynamic `Resampling<1,1,false>` with `input_chunk_size = output_chunk_size = fft_size`
+- **Types:** `float`, `double`
+
+### `SpectralEstimator.hpp`
+
+#### `SpectralEstimator<T>`
+- **Description:** "Bartlett power spectral density estimate: averages `n_averages` non-overlapping windowed FFT frames; outputs a `DataSet<T>` with frequency axis and PSD values"
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `fft_size` (default 1024), `n_averages` (default 8), `sample_rate` (default 1.0), `window_type` (default "hann")
+- **Processing:** `processBulk` — `input_chunk_size = fft_size * n_averages`, `output_chunk_size = 1`
+- **Types:** `float`, `double`
 
 ---
 
@@ -620,6 +766,61 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **State:** `HistoryBuffer<T> _xHistory`, `std::vector<T> _Rxx` (N×N), `std::vector<T> _rxd` (N), `std::vector<T> _taps` (N)
 - **Processing:** `processBulk`
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+#### `BiquadFilter<T>`
+- **Description:** "second-order IIR filter (biquad); implements a direct-form II transposed section using user-supplied `b0,b1,b2,a1,a2` coefficients"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `b0`, `b1`, `b2`, `a1`, `a2`
+- **State:** `T _w1`, `T _w2`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+#### `FractionalDelayLine<T>`
+- **Description:** "sub-sample delay using a Lagrange interpolating FIR; `delay` can be any non-negative real value; taps are recomputed in `settingsChanged`"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `delay` (default 0.0), `n_taps` (default 5)
+- **State:** `HistoryBuffer<T> _history`, `std::vector<T> _taps`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+#### `AdaptiveLmsFilter<T>`
+- **Description:** "Least-Mean-Squares adaptive FIR filter; updates taps online with `step_size` per sample; two inputs (signal + desired), two outputs (filtered + error)"
+- **Ports:** `PortIn<T> in`, `PortIn<T> desired`, `PortOut<T> out`, `PortOut<T> error`
+- **Settings:** `n_taps` (default 16), `step_size` (default 0.01)
+- **State:** `HistoryBuffer<T> _xHistory`, `std::vector<T> _taps`
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`
+
+#### `Squelch<T>`
+- **Description:** "suppresses the output when the short-term signal power falls below a threshold; outputs zeros when squelched"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `threshold` (linear power, default 0.01), `alpha` (smoothing, default 0.01)
+- **State:** `T _power`
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+#### `Convolver<T>`
+- **Description:** "fast convolution via overlap-add using an FFT; computes the linear convolution of the input with `kernel` using the gnuradio FFT algorithm"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `kernel` (FIR taps vector)
+- **Processing:** `processBulk` — dynamic chunk size driven by kernel length
+- **Types:** `float`, `double`
+
+#### `SteadyStateKalman<T>`
+- **Description:** "Kalman filter with steady-state gain pre-computed via DARE; constant-gain prediction-correction for time-invariant systems"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `state_dim`, `obs_dim`, `F`, `H`, `Q`, `R`, `initial_state`
+- **State:** `std::vector<T> _x`
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`
+
+#### `KalmanFilter<T>`
+- **Description:** "full linear Kalman filter with online covariance propagation; updates state estimate and error covariance each sample"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `state_dim`, `obs_dim`, `F`, `H`, `Q`, `R`, `initial_state`, `initial_covariance`
+- **State:** `std::vector<T> _x`, `std::vector<T> _P`
+- **Processing:** `processBulk`
+- **Types:** `float`, `double`
 
 ---
 
@@ -750,6 +951,105 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 ---
 
+## Module: coding (`blocks/coding/`)
+
+### `DifferentialEncoder.hpp` / `DifferentialDecoder.hpp`
+
+#### `DifferentialEncoder`
+- **Description:** "XOR-based differential encoder: `out[n] = out[n-1] XOR in[n]`; removes phase ambiguity in BPSK/QPSK"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+#### `DifferentialDecoder`
+- **Description:** "differential decoder: `out[n] = in[n] XOR in[n-1]`; counterpart to `DifferentialEncoder`"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+### `GrayCodeEncoder.hpp` / `GrayCodeDecoder.hpp`
+
+#### `GrayCodeEncoder`
+- **Description:** "encodes natural binary to Gray code: `out = n ^ (n >> 1)`"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+#### `GrayCodeDecoder`
+- **Description:** "decodes Gray code to natural binary via iterative XOR-fold"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+### `PackBits.hpp` / `UnpackBits.hpp`
+
+#### `PackBits`
+- **Description:** "packs `bits_per_chunk` LSBs of each input byte into a dense output byte stream"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `bits_per_chunk` (default 1)
+- **Processing:** `processBulk` — `input_chunk_size = 8 / bits_per_chunk`, `output_chunk_size = 1`
+
+#### `UnpackBits`
+- **Description:** "unpacks each input byte into `bits_per_chunk` output bytes, one bit per byte (LSB-justified)"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `bits_per_chunk` (default 1)
+- **Processing:** `processBulk` — `input_chunk_size = 1`, `output_chunk_size = 8 / bits_per_chunk`
+
+### `Scrambler.hpp`
+
+#### `Scrambler`
+- **Description:** "LFSR-based data whitener: XORs input bytes with a pseudo-random sequence; configurable polynomial `mask`, `seed`, and register `len`"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `mask` (default 0xA9), `seed` (default 0xFF), `len` (default 7)
+- **Processing:** `processOne`
+
+### `CrcCompute.hpp`
+
+#### `CrcCompute`
+- **Description:** "computes a CRC-8/16/32 checksum over the input and appends or verifies it; burst delimited by packet tags"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `poly`, `initial_value`, `mode` (append/verify)
+- **Processing:** `processBulk`
+
+---
+
+## Module: demod (`blocks/demod/`)
+
+### `PLL.hpp`
+
+#### `PLL<T>`
+- **Description:** "2nd-order phase-locked loop using the Gardner formula for α/β from normalised loop bandwidth and damping factor"
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `loop_bandwidth` (default 0.01), `damping_factor` (default 0.707)
+- **State:** `T _phase`, `T _freq`, `T _alpha`, `T _beta`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+### `CostasLoop.hpp`
+
+#### `CostasLoop<T>`
+- **Description:** "Costas loop for carrier phase recovery; supports BPSK (order 2), QPSK (order 4), and 8PSK (order 8) phase error detectors"
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `loop_bandwidth`, `damping_factor`, `order` (default 2)
+- **Processing:** `processOne`
+- **Types:** `float`, `double`
+
+### `ClockRecoveryMM.hpp`
+
+#### `ClockRecoveryMM<T>`
+- **Description:** "Mueller-Müller symbol timing recovery with variable-rate output; adjusts sampling instant using the M-M timing error detector"
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `omega` (samples/symbol), `loop_bandwidth`, `gain_mu`, `gain_omega`
+- **Processing:** `processBulk` — variable output rate
+- **Types:** `float`, `double`
+
+### `SymbolSync.hpp`
+
+#### `SymbolSync<T>`
+- **Description:** "Gardner TED + PI loop filter for symbol timing synchronisation; uses `FractionalDelayLine` for sub-sample interpolation"
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `sps` (samples/symbol), `loop_bandwidth`, `damping_factor`, `max_deviation`
+- **Processing:** `processBulk` — variable output rate
+- **Types:** `float`, `double`
+
+---
+
 ## Module: ofdm (`blocks/ofdm/`)
 
 ### `CyclicPrefixAdd.hpp`
@@ -774,17 +1074,19 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 | Module | Count |
 |---|---|
-| basic | 22 |
+| basic | 33 |
 | math | 18 |
-| electrical | 3 |
+| electrical | 7 |
 | fileio | 2 |
-| fourier | 1 |
-| filter | 11 |
+| fourier | 3 |
+| filter | 18 |
 | http | 2 |
 | soapy | 1 |
 | testing | 12 |
 | ofdm | 2 |
+| coding | 8 |
+| demod | 4 |
 | timing | 2 |
-| **Total** | **77** |
+| **Total** | **113** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN` (basic).

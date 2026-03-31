@@ -41,7 +41,7 @@ Arbitrary (non-rational) resampling using a polyphase filter bank with linear in
 #### `Keep1InN<T>` — P1 ✓ implemented
 Covered by `gr::filter::Decimator<T>` (pre-existing). The `decim` setting controls N; offset support is not separate but offset=0 (first sample kept) is the standard use case.
 
-#### `KeepMInN<T>` — P2
+#### `KeepMInN<T>` — P2 ✓ implemented
 Forward M consecutive samples out of every N consumed. Generalises `Keep1InN` for burst-mode or sub-frame extraction.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `m`, `n`, `offset`
@@ -59,13 +59,13 @@ Unpacks each input vector into `vector_size` scalar output samples. Counterpart 
 - **Settings:** `vector_size`
 - **Processing:** `processBulk` — `Resampling<1, N>`
 
-#### `StreamMux<T>` — P2
+#### `StreamMux<T>` — P2 ✓ implemented
 Interleaves N input streams into one output stream, cycling through inputs in round-robin order with a configurable number of samples taken from each stream per cycle. Counterpart to `Selector` for ordered interleaving.
 - **Ports:** `std::vector<PortIn<T>> in`, `PortOut<T> out`
 - **Settings:** `n_inputs`, `samples_per_input`
 - **Processing:** `processBulk`
 
-#### `StreamDemux<T>` — P2
+#### `StreamDemux<T>` — P2 ✓ implemented
 Splits one input stream into N output streams, cycling through outputs in round-robin order. Counterpart to `StreamMux`.
 - **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> out`
 - **Settings:** `n_outputs`, `samples_per_output`
@@ -78,19 +78,19 @@ Implemented as `gr::filter::Repeat<T>` in `blocks/filter/include/gnuradio-4.0/fi
 
 ### Tags
 
-#### `StreamTagger<T>` — P2
+#### `StreamTagger<T>` — P2 ✓ implemented
 Injects a configurable tag into the stream at a regular sample interval or on a one-shot basis. Useful for marking frame boundaries, injecting metadata, or triggering downstream blocks.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `tag_key`, `tag_value`, `interval` (0 = one-shot), `offset`
 - **Processing:** `processBulk`
 
-#### `TagGate<T>` — P2
+#### `TagGate<T>` — P2 ✓ implemented
 Passes samples only while a named tag is active (or only when it is inactive). Provides tag-controlled gating of the data stream.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `tag_key`, `open_on_tag` (bool)
 - **Processing:** `processBulk` — `NoDefaultTagForwarding`
 
-#### `TagDebugSink<T>` — P2
+#### `TagDebugSink<T>` — P2 ✓ implemented
 Logs every tag arriving on its input to stdout or a file; passes samples through unchanged. Indispensable for debugging tag propagation in complex graphs.
 - **Ports:** `PortIn<T> in`, `PortOut<T, Optional> out`
 - **Settings:** `file_path` (stdout if empty), `tag_key_filter`
@@ -100,7 +100,7 @@ Logs every tag arriving on its input to stdout or a file; passes samples through
 
 ### Windowing
 
-#### `WindowApply<T>` — P2
+#### `WindowApply<T>` — P2 ✓ implemented
 Multiplies a block of `window_size` samples by a named window function (Hann, Hamming, Blackman, Kaiser, …). Decouples windowing from the FFT block so the same window can be applied before other transforms or for signal conditioning.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `window_size`, `window_type`, `beta` (Kaiser only)
@@ -116,13 +116,13 @@ Limits sample throughput to a target wall-clock rate by sleeping when the graph 
 - **Settings:** `sample_rate`, `maximum_items_per_chunk`
 - **Processing:** `processBulk`
 
-#### `Head<T>` — P2
+#### `Head<T>` — P2 ✓ implemented
 Passes exactly `n_samples` samples downstream then signals `requestStop()`. The fundamental primitive for finite-length simulations, unit tests that drive a graph with a fixed burst, and batch-processing pipelines.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `n_samples`
 - **Processing:** `processBulk`
 
-#### `Skip<T>` — P2
+#### `Skip<T>` — P2 ✓ implemented
 Discards the first `n_samples` samples and passes all subsequent samples unchanged. Complements `Head<T>` for windowed extraction; also useful for skipping filter warm-up before measuring steady-state output.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `n_samples`
@@ -132,14 +132,14 @@ Discards the first `n_samples` samples and passes all subsequent samples unchang
 
 ### Sources
 
-#### `ChirpSource<T>` — P2
+#### `ChirpSource<T>` — P2 ✓ implemented
 Generates a linear frequency sweep from `start_frequency` to `stop_frequency` over `sweep_length` samples, then either stops or repeats. Used in radar, sonar, spread-spectrum testing, and impulse-response measurement (a chirp covers a wide bandwidth with uniform energy).
 - **Ports:** `PortOut<T> out`
 - **Settings:** `start_frequency`, `stop_frequency`, `sample_rate`, `sweep_length`, `repeat` (bool), `amplitude`
 - **State:** `std::size_t _sample` — current position within sweep
 - **Processing:** `processBulk`
 
-#### `AwgnChannel<T>` — P2
+#### `AwgnChannel<T>` — P2 ✓ implemented
 Adds white Gaussian noise at a configurable SNR or noise standard deviation to a passthrough signal. Indispensable for simulation and BER testing; without it a noise source must be wired up and mixed manually outside the block graph.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `noise_stddev` or `snr_db` (one used, other derived), `seed`
@@ -218,19 +218,19 @@ Implemented as `gr::blocks::filter::DCBlocker<T>` in `blocks/filter/include/gnur
 #### `HilbertTransform<T>` — P1 ✓ implemented
 Implemented as `gr::blocks::filter::HilbertTransform<T>` in `blocks/filter/include/gnuradio-4.0/filter/HilbertTransform.hpp`. Odd-symmetric Hamming-windowed Type-III FIR. Output is aligned `in[n-M] + j·H{in}[n]`. Supports float, double.
 
-#### `Squelch<T>` — P2
+#### `Squelch<T>` — P2 ✓ implemented
 Gates the output stream based on the measured input power: passes samples when power exceeds `threshold`, suppresses (outputs zeros or stops) otherwise. Foundational block for voice/burst radio receivers.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `threshold` (dB or linear), `attack_length`, `decay_length`
 - **Processing:** `processBulk`
 
-#### `Convolver<T>` — P2
+#### `Convolver<T>` — P2 ✓ implemented
 Overlap-add or overlap-save fast convolution for large FIR kernels. Provides O(N log N) complexity where `fir_filter`'s O(N·M) is impractical for long impulse responses (room acoustics, channel equalisation).
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `taps`, `block_size`
 - **Processing:** `processBulk`
 
-#### `AdaptiveLmsFilter<T>` — P2
+#### `AdaptiveLmsFilter<T>` — P2 ✓ implemented
 Least-Mean-Squares (LMS) adaptive FIR filter with a separate error/reference input. Used for echo cancellation, interference cancellation, and channel equalisation.
 - **Ports:** `PortIn<T> in`, `PortIn<T> reference`, `PortOut<T> out`, `PortOut<T> error`
 - **Settings:** `n_taps`, `step_size` (µ), `leak_factor`
@@ -242,14 +242,14 @@ Applies a sliding-window median filter to reject impulse noise. More effective t
 - **Settings:** `window_size`
 - **Processing:** `processBulk`
 
-#### `BiquadFilter<T>` — P2
+#### `BiquadFilter<T>` — P2 ✓ implemented
 Direct-form II transposed second-order IIR section (biquad). More numerically stable than the generic `iir_filter` for high-Q designs because it avoids accumulating round-off error in the feedback path. Accepts standard `[b0, b1, b2, a1, a2]` coefficients, enabling direct use of audio/DSP coefficient tables. Supports cascading multiple sections for higher-order filters.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `b0`, `b1`, `b2`, `a1`, `a2`
 - **State:** two delay elements `_w1`, `_w2` (direct-form II transposed)
 - **Processing:** `processOne` — stateless coefficient path, minimal state
 
-#### `FractionalDelayLine<T>` — P2
+#### `FractionalDelayLine<T>` — P2 ✓ implemented
 Delays a signal by a non-integer number of samples using a Farrow filter (polynomial interpolation) or a Lagrange FIR. Required wherever timing alignment at sub-sample resolution is needed: clock recovery feedback, pre-matched-filter alignment, and multi-channel coherent combining.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `delay` (fractional samples), `n_taps` (filter order, default 8)
@@ -259,14 +259,14 @@ Delays a signal by a non-integer number of samples using a Farrow filter (polyno
 #### `WienerFilter<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::filter::WienerFilter<T>` in `blocks/filter/include/gnuradio-4.0/filter/WienerFilter.hpp`. Trains on paired `(in, desired)` streams for `training_length` samples, solves R_xx·h = r_xd via Gaussian elimination with partial pivoting and diagonal regularisation, then applies frozen FIR taps. Supports float, double, complex<float>, complex<double>.
 
-#### `KalmanFilter<T>` — P2
+#### `KalmanFilter<T>` — P2 ✓ implemented
 Recursive optimal state estimator for linear dynamic systems with Gaussian process and observation noise. Alternates between a predict step (`x̂[k|k-1] = F·x̂[k-1]`, `P[k|k-1] = F·P·F^T + Q`) and an update step (`K = P·H^T·(H·P·H^T+R)^{-1}`, `x̂ += K·(z−H·x̂)`, `P = (I−K·H)·P`). Distinct from `WienerFilter` in that it handles non-stationary dynamic models and propagates a full error-covariance matrix at every step.
 - **Ports:** `PortIn<T> in` (observation z[k], length `obs_dim`), `PortOut<T> out` (state estimate x̂[k], length `state_dim`)
 - **Settings:** `state_dim`, `obs_dim`, `F` (state-transition matrix, flat vector, length state_dim²), `H` (observation matrix, obs_dim×state_dim), `Q` (process noise covariance, state_dim²), `R` (observation noise covariance, obs_dim²), `initial_state` (state_dim), `initial_covariance` (state_dim²)
 - **State:** `std::vector<T> _xHat` (state estimate), `std::vector<T> _P` (error-covariance matrix)
 - **Processing:** `processBulk` — vector-valued input/output; each call processes one observation vector per sample
 
-#### `SteadyStateKalman<T>` — P2
+#### `SteadyStateKalman<T>` — P2 ✓ implemented
 Simplified Kalman filter for time-invariant systems where the filter gain converges to a fixed steady-state value. Solves the Discrete Algebraic Riccati Equation (DARE) in `settingsChanged` to obtain the steady-state gain K∞; per-sample work is then a single matrix-vector multiply (`x̂[k] = (F − K∞·H·F)·x̂[k−1] + K∞·z[k]`) with no covariance propagation. Significantly lower per-sample cost than `KalmanFilter` when the system model is constant.
 - **Ports:** `PortIn<T> in` (observation z[k], length `obs_dim`), `PortOut<T> out` (state estimate x̂[k], length `state_dim`)
 - **Settings:** `state_dim`, `obs_dim`, `F`, `H`, `Q`, `R`, `initial_state` (same matrix layout as `KalmanFilter`)
@@ -277,7 +277,7 @@ Simplified Kalman filter for time-invariant systems where the filter gain conver
 
 ## Module: fourier
 
-#### `IFFT<T, U, FourierAlgorithm>` — P1
+#### `IFFT<T, U, FourierAlgorithm>` — P1 ✓ implemented
 Computes the Inverse (Fast) Fourier Transform. The direct counterpart to `FFT`; required for any synthesis chain (OFDM modulation, overlap-add filtering, spectral shaping).
 - **Ports:** `PortIn<DataSet<T>> in`, `PortOut<U> out`
 - **Settings:** `fft_size`, `window_type` (applied before transform for spectral leakage control on reconstruction)
@@ -289,7 +289,7 @@ Splits a wideband input stream into N equal-width sub-band channels using a poly
 - **Settings:** `n_channels`, `taps`, `oversample_rate`
 - **Processing:** `processBulk`
 
-#### `SpectralEstimator<T>` — P2
+#### `SpectralEstimator<T>` — P2 ✓ implemented
 Estimates the power spectral density using Welch's method: overlapping windowed FFT frames are averaged to reduce variance. Far more useful for signal monitoring and characterisation than a single FFT frame; the existing `FFT` block provides the transform kernel so this block adds only overlap buffering, window application, and accumulation.
 - **Ports:** `PortIn<T> in`, `PortOut<DataSet<value_type>> out`
 - **Settings:** `fft_size`, `window_type`, `overlap` (fraction 0–1), `n_averages`
@@ -313,25 +313,25 @@ Implemented as `gr::blocks::math::QuadratureDemod<T>` in `blocks/math/include/gn
 #### `AmDemod<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::AmDemod<T>` in `blocks/math/include/gnuradio-4.0/math/AmDemod.hpp`. Computes `|in[n]|`; chain with DCBlocker for DSB-SC. Supports complex<float>, complex<double>; outputs the corresponding real scalar type.
 
-#### `PLL<T>` — P1
+#### `PLL<T>` — P1 ✓ implemented
 Phase-Locked Loop for carrier recovery: tracks an input carrier and outputs a locked reference sinusoid. Essential for coherent demodulation of AM, PM, and narrowband FM signals.
 - **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `loop_bandwidth`, `max_freq`, `min_freq`
 - **Processing:** `processOne`
 
-#### `CostasLoop<T>` — P2
+#### `CostasLoop<T>` — P2 ✓ implemented
 Costas loop for joint carrier-frequency and carrier-phase recovery from BPSK, QPSK, or 8-PSK signals. Outputs the phase-corrected baseband symbols.
 - **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `loop_bandwidth`, `order` (2 = BPSK, 4 = QPSK, 8 = 8PSK)
 - **Processing:** `processOne`
 
-#### `ClockRecoveryMM<T>` — P2
+#### `ClockRecoveryMM<T>` — P2 ✓ implemented
 Mueller-Müller symbol timing recovery: adjusts the sampling instant to align with symbol centres using a feedback loop driven by the Mueller-Müller error signal.
 - **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `omega` (samples per symbol), `loop_bandwidth`, `gain_mu`, `gain_omega`
 - **Processing:** `processBulk` (variable output rate)
 
-#### `SymbolSync<T>` — P2
+#### `SymbolSync<T>` — P2 ✓ implemented
 Symbol timing synchronisation combining a Gardner timing error detector with a PI loop controller and a `FractionalDelayLine` interpolator. Adjusts the effective sampling phase continuously to align output samples with symbol centres. The Gardner detector is data-aided (decision-directed) and works for any linearly modulated signal (BPSK, QPSK, QAM) without a separate pilot. Requires `FractionalDelayLine` as a prerequisite.
 - **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `sps` (samples per symbol), `loop_bandwidth`, `damping_factor`, `max_deviation`
@@ -342,41 +342,41 @@ Symbol timing synchronisation combining a Gardner timing error detector with a P
 
 ## Module: coding (new module suggested)
 
-#### `PackBits<T>` — P2
+#### `PackBits<T>` — P2 ✓ implemented
 Packs `bits_per_chunk` LSBs of each input byte into a densely packed output byte stream. Standard pre-FEC or pre-modulator packing step.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `bits_per_chunk`
 - **Processing:** `processBulk`
 
-#### `UnpackBits<T>` — P2
+#### `UnpackBits<T>` — P2 ✓ implemented
 Unpacks each input byte into `bits_per_chunk` output bytes, one bit per byte (LSB-justified). Counterpart to `PackBits`.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `bits_per_chunk`
 - **Processing:** `processBulk`
 
-#### `DifferentialEncoder<T>` — P2
+#### `DifferentialEncoder<T>` — P2 ✓ implemented
 Encodes the input bit stream differentially: `out[n] = out[n-1] XOR in[n]`. Removes phase ambiguity in BPSK/QPSK systems.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Processing:** `processOne`
 
-#### `DifferentialDecoder<T>` — P2
+#### `DifferentialDecoder<T>` — P2 ✓ implemented
 Decodes differentially-encoded bits: `out[n] = in[n] XOR in[n-1]`. Counterpart to `DifferentialEncoder`.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Processing:** `processOne`
 
-#### `Scrambler<T>` — P3
+#### `Scrambler<T>` — P3 ✓ implemented
 XORs the input with a pseudo-random binary sequence generated by a linear feedback shift register (LFSR). Used for data whitening to improve spectral flatness and aid clock recovery.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `mask`, `seed`, `len`
 - **Processing:** `processOne`
 
-#### `CrcCompute<T>` — P2
+#### `CrcCompute<T>` — P2 ✓ implemented
 Computes a CRC-8, CRC-16, or CRC-32 checksum over a burst delimited by tags and appends (source mode) or verifies and strips (sink mode) the checksum bytes.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Settings:** `poly`, `initial_value`, `mode` (append/verify)
 - **Processing:** `processBulk` — `NoDefaultTagForwarding`
 
-#### `GrayCodeEncoder` / `GrayCodeDecoder` — P3
+#### `GrayCodeEncoder` / `GrayCodeDecoder` — P3 ✓ implemented
 Converts between natural binary and Gray code (reflected binary). Each output bit differs from the corresponding input by at most one bit transition per symbol, which reduces errors in ADC/DAC index decoding and FSK symbol mapping.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Processing:** `processOne` — stateless (`n ^ (n >> 1)` for encode; iterative XOR-fold for decode)
@@ -499,25 +499,25 @@ Plays a sample stream through a system audio device. Counterpart to `AudioSource
 
 ## Module: electrical
 
-#### `HarmonicAnalyser<T>` — P2
+#### `HarmonicAnalyser<T>` — P2 ✓ implemented
 Measures the amplitude and phase of the fundamental and a configurable number of harmonics from a periodic signal using a synchronised DFT. Needed for THD (total harmonic distortion) and harmonic order analysis in power-quality measurement.
 - **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
 - **Settings:** `fundamental_frequency`, `n_harmonics`, `sample_rate`, `window_size`
 - **Processing:** `processBulk`
 
-#### `TotalHarmonicDistortion<T>` — P2
+#### `TotalHarmonicDistortion<T>` — P2 ✓ implemented
 Computes Total Harmonic Distortion (THD and THD+N) from harmonic amplitude measurements. Accepts the output of `HarmonicAnalyser` or a spectrum.
 - **Ports:** `PortIn<DataSet<T>> in`, `PortOut<T> thd`, `PortOut<T> thd_n`
 - **Settings:** `n_harmonics`
 - **Processing:** `processBulk`
 
-#### `PhasorEstimator<T>` — P2
+#### `PhasorEstimator<T>` — P2 ✓ implemented
 Estimates the complex phasor (amplitude and phase) of a near-sinusoidal signal at a known frequency using a Goertzel filter or a synchronous DFT over one cycle. More efficient than a full FFT for single-frequency measurement.
 - **Ports:** `PortIn<T> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `frequency`, `sample_rate`, `window_size`
 - **Processing:** `processBulk`
 
-#### `GridFrequencyEstimator<T>` — P2
+#### `GridFrequencyEstimator<T>` — P2 ✓ implemented
 Estimates the instantaneous frequency of a power-grid waveform (45–65 Hz range) using a zero-crossing or PLL method optimised for 50/60 Hz signals with low SNR. More specialised and more robust than the general-purpose `FrequencyEstimatorTimeDomain` for grid applications.
 - **Ports:** `PortIn<T> in`, `PortOut<T> frequency`
 - **Settings:** `sample_rate`, `nominal_frequency` (50 or 60 Hz), `filter_bandwidth`
