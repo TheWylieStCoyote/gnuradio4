@@ -24,6 +24,7 @@ gr_add_block_library(
   include/gnuradio-4.0/filter/Convolver.hpp
   include/gnuradio-4.0/filter/SteadyStateKalman.hpp
   include/gnuradio-4.0/filter/KalmanFilter.hpp
+  include/gnuradio-4.0/filter/MedianFilter.hpp
   LINK_LIBRARIES
   gr-filter
   gnuradio-algorithm)

@@ -42,3 +42,6 @@ target_link_libraries(qa_SteadyStateKalman PRIVATE gr-filter)
 
 add_ut_test(qa_KalmanFilter)
 target_link_libraries(qa_KalmanFilter PRIVATE gr-filter)
+
+add_ut_test(qa_MedianFilter)
+target_link_libraries(qa_MedianFilter PRIVATE gr-filter)
