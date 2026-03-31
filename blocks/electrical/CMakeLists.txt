@@ -10,6 +10,10 @@ gr_add_block_library(
   MAKE_SHARED_LIBRARY
   HEADERS
   include/gnuradio-4.0/electrical/PowerEstimators.hpp
+  include/gnuradio-4.0/electrical/PhasorEstimator.hpp
+  include/gnuradio-4.0/electrical/HarmonicAnalyser.hpp
+  include/gnuradio-4.0/electrical/TotalHarmonicDistortion.hpp
+  include/gnuradio-4.0/electrical/GridFrequencyEstimator.hpp
   LINK_LIBRARIES
   gr-basic
   gr-electrical)

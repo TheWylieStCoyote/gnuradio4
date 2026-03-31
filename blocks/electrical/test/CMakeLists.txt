@@ -1,2 +1,14 @@
 add_ut_test(qa_PowerEstimators)
 target_link_libraries(qa_PowerEstimators PRIVATE gr-electrical)
+
+add_ut_test(qa_PhasorEstimator)
+target_link_libraries(qa_PhasorEstimator PRIVATE gr-electrical)
+
+add_ut_test(qa_HarmonicAnalyser)
+target_link_libraries(qa_HarmonicAnalyser PRIVATE gr-electrical)
+
+add_ut_test(qa_TotalHarmonicDistortion)
+target_link_libraries(qa_TotalHarmonicDistortion PRIVATE gr-electrical)
+
+add_ut_test(qa_GridFrequencyEstimator)
+target_link_libraries(qa_GridFrequencyEstimator PRIVATE gr-electrical)
