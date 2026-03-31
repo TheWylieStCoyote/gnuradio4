@@ -1,0 +1,443 @@
+# Block candidates
+
+Proposed blocks not present in the current inventory (`BLOCK_INVENTORY.md`).
+Organised by module, with rationale and suggested API for each.
+
+Priority ratings reflect how foundational or broadly needed each block is:
+- **P1** — critical gap; frequently needed, no reasonable workaround with existing blocks
+- **P2** — high value; commonly used, saves significant graph complexity
+- **P3** — useful addition; covers a specific but well-defined need
+
+---
+
+## Module: basic
+
+### Resampling
+
+#### `Decimator<T>` — P1
+Drop every `decimation_factor - 1` of `decimation_factor` input samples, producing a lower-rate output stream. No anti-aliasing filtering (that is the caller's responsibility via a preceding `fir_filter`). The simplest legal downsampler; required for almost every SDR receive chain.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `decimation_factor`
+- **Processing:** `processBulk` — `Resampling<N, 1>`
+
+#### `Interpolator<T>` — P1
+Insert `interpolation_factor - 1` zero-valued samples between each input sample, producing a higher-rate output stream. No anti-imaging filtering. Counterpart to `Decimator`.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interpolation_factor`
+- **Processing:** `processBulk` — `Resampling<1, N>`
+
+#### `RationalResampler<T>` — P1
+Resample by a rational factor `interpolation / decimation` with an integrated anti-aliasing/anti-imaging FIR filter. The standard building block for sample-rate conversion between arbitrary rates (e.g. 2 Msps → 48 ksps audio). Equivalent to GNU Radio 3.x `rational_resampler`.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interpolation`, `decimation`, `taps` (auto-designed if empty), `fractional_bw`
+- **Processing:** `processBulk`
+
+#### `PolyphaseArbitraryResampler<T>` — P2
+Arbitrary (non-rational) resampling using a polyphase filter bank with linear interpolation between phases. Handles continuously varying or irrational resampling ratios. Useful for clock-recovery feedback loops.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `rate`, `n_filters`, `taps`
+- **Processing:** `processBulk`
+
+---
+
+### Stream manipulation
+
+#### `Keep1InN<T>` — P1
+Forward one sample for every N consumed; the rest are discarded. A lightweight decimator with no filtering, suitable for decimating already-bandwidth-limited signals or slow control streams.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `n`, `offset` (which of the N to keep)
+- **Processing:** `processBulk` — `Resampling<N, 1>`
+
+#### `KeepMInN<T>` — P2
+Forward M consecutive samples out of every N consumed. Generalises `Keep1InN` for burst-mode or sub-frame extraction.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `m`, `n`, `offset`
+- **Processing:** `processBulk`
+
+#### `StreamToVector<T>` — P1
+Accumulates `vector_size` scalar samples into a single vector-typed output item. The fundamental bridge between sample-stream and block-processing domains (FFT, matrix operations, batch decoders).
+- **Ports:** `PortIn<T> in`, `PortOut<std::vector<T>> out`  
+- **Settings:** `vector_size`
+- **Processing:** `processBulk` — `Resampling<N, 1>`
+
+#### `VectorToStream<T>` — P1
+Unpacks each input vector into `vector_size` scalar output samples. Counterpart to `StreamToVector`.
+- **Ports:** `PortIn<std::vector<T>> in`, `PortOut<T> out`
+- **Settings:** `vector_size`
+- **Processing:** `processBulk` — `Resampling<1, N>`
+
+#### `StreamMux<T>` — P2
+Interleaves N input streams into one output stream, cycling through inputs in round-robin order with a configurable number of samples taken from each stream per cycle. Counterpart to `Selector` for ordered interleaving.
+- **Ports:** `std::vector<PortIn<T>> in`, `PortOut<T> out`
+- **Settings:** `n_inputs`, `samples_per_input`
+- **Processing:** `processBulk`
+
+#### `StreamDemux<T>` — P2
+Splits one input stream into N output streams, cycling through outputs in round-robin order. Counterpart to `StreamMux`.
+- **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> out`
+- **Settings:** `n_outputs`, `samples_per_output`
+- **Processing:** `processBulk`
+
+#### `Repeat<T>` — P3
+Repeats each input sample `repeat_count` times on the output. Simple zero-order-hold upsampler.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `repeat_count`
+- **Processing:** `processBulk` — `Resampling<1, N>`
+
+---
+
+### Tags
+
+#### `StreamTagger<T>` — P2
+Injects a configurable tag into the stream at a regular sample interval or on a one-shot basis. Useful for marking frame boundaries, injecting metadata, or triggering downstream blocks.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `tag_key`, `tag_value`, `interval` (0 = one-shot), `offset`
+- **Processing:** `processBulk`
+
+#### `TagGate<T>` — P2
+Passes samples only while a named tag is active (or only when it is inactive). Provides tag-controlled gating of the data stream.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `tag_key`, `open_on_tag` (bool)
+- **Processing:** `processBulk` — `NoDefaultTagForwarding`
+
+#### `TagDebugSink<T>` — P2
+Logs every tag arriving on its input to stdout or a file; passes samples through unchanged. Indispensable for debugging tag propagation in complex graphs.
+- **Ports:** `PortIn<T> in`, `PortOut<T, Optional> out`
+- **Settings:** `file_path` (stdout if empty), `tag_key_filter`
+- **Processing:** `processBulk`
+
+---
+
+### Windowing
+
+#### `WindowApply<T>` — P2
+Multiplies a block of `window_size` samples by a named window function (Hann, Hamming, Blackman, Kaiser, …). Decouples windowing from the FFT block so the same window can be applied before other transforms or for signal conditioning.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `window_size`, `window_type`, `beta` (Kaiser only)
+- **Processing:** `processBulk`
+
+---
+
+## Module: math
+
+#### `MovingAverage<T>` — P1
+Computes a causal moving average over the last `length` samples using an efficient running-sum implementation. The most common smoothing primitive; applicable to control loops, envelope detection, and noise reduction.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `length`, `scale` (normalisation factor, default `1/length`)
+- **Processing:** `processOne`
+
+#### `MovingRms<T>` — P2
+Computes a causal moving Root Mean Square over the last `length` samples. Standard for power estimation and automatic gain control feedback.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `length`
+- **Processing:** `processOne`
+
+#### `Clamp<T>` — P2
+Clips output values to `[min_value, max_value]`. Used to constrain control signals, prevent saturation, or implement a simple limiter.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `min_value`, `max_value`
+- **Processing:** `processOne`
+
+#### `Threshold<T>` — P2
+Emits `high_value` when `in > threshold`, otherwise `low_value`. Simpler and cheaper than `SchmittTrigger`; no hysteresis, no interpolation, no tag generation. Suitable for boolean-valued control paths.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `threshold`, `high_value`, `low_value`
+- **Processing:** `processOne`
+
+#### `PhaseUnwrap<T>` — P2
+Removes ±2π discontinuities from a stream of phase values to produce a continuously varying phase signal. Essential post-processing step after `Arg` when tracking phase over time.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Processing:** `processOne`
+
+#### `Conjugate<T>` — P2
+Computes the complex conjugate of each input sample. Trivial but frequently needed when implementing correlators, matched filters, or coherent combining.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Processing:** `processOne` — `std::conj(x)`
+
+#### `Accumulator<T>` — P2
+Running sum (integration) of the input stream; optionally resets on a tag. Useful for energy integration, phase accumulation, and Σ-Δ modulation.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `reset_tag_key`
+- **Processing:** `processOne`
+
+#### `Differentiator<T>` — P2
+Computes `out[n] = in[n] - in[n-1]`. First-order discrete differentiation; used for FM demodulation (instantaneous frequency), edge detection, and derivative control.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Processing:** `processOne`
+
+#### `PeakDetector<T>` — P2
+Detects local maxima (and optionally minima) in the stream and publishes a tag at each detected peak. Configurable look-ahead window and minimum peak height.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `look_ahead`, `min_peak_height`, `min_peak_distance`
+- **Processing:** `processBulk`
+
+#### `Histogram<T>` — P3
+Accumulates a sample-amplitude histogram over a configurable window and emits it as a `DataSet` output. Used for distribution analysis, ADC characterisation, and density estimation.
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `n_bins`, `min_value`, `max_value`, `accumulate_n`
+- **Processing:** `processBulk`
+
+#### `Correlation<T>` — P2
+Computes the cross-correlation between two input streams over a sliding window. Key primitive for preamble detection, time-of-arrival estimation, and matched filtering.
+- **Ports:** `PortIn<T> signal`, `PortIn<T> reference`, `PortOut<T> out`
+- **Settings:** `window_size`
+- **Processing:** `processBulk`
+
+---
+
+## Module: filter
+
+#### `DCBlocker<T>` — P1
+Removes the DC component from the input using a single-pole high-pass IIR filter (`y[n] = x[n] - x[n-1] + α·y[n-1]`). Ubiquitous in SDR receive chains; avoids using a general IIR block just for this common case.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `length` (controls the pole location α)
+- **Processing:** `processOne`
+
+#### `HilbertTransform<T>` — P1
+Produces the analytic signal from a real-valued input: `out = in + j·H{in}`, where `H{}` is the Hilbert transform implemented as an odd-symmetric FIR filter. Converts real to complex, enabling downstream quadrature processing.
+- **Ports:** `PortIn<float> in`, `PortOut<std::complex<float>> out`
+- **Settings:** `n_taps`, `window_type`
+- **Processing:** `processBulk`
+
+#### `Squelch<T>` — P2
+Gates the output stream based on the measured input power: passes samples when power exceeds `threshold`, suppresses (outputs zeros or stops) otherwise. Foundational block for voice/burst radio receivers.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `threshold` (dB or linear), `attack_length`, `decay_length`
+- **Processing:** `processBulk`
+
+#### `Convolver<T>` — P2
+Overlap-add or overlap-save fast convolution for large FIR kernels. Provides O(N log N) complexity where `fir_filter`'s O(N·M) is impractical for long impulse responses (room acoustics, channel equalisation).
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `taps`, `block_size`
+- **Processing:** `processBulk`
+
+#### `AdaptiveLmsFilter<T>` — P2
+Least-Mean-Squares (LMS) adaptive FIR filter with a separate error/reference input. Used for echo cancellation, interference cancellation, and channel equalisation.
+- **Ports:** `PortIn<T> in`, `PortIn<T> reference`, `PortOut<T> out`, `PortOut<T> error`
+- **Settings:** `n_taps`, `step_size` (µ), `leak_factor`
+- **Processing:** `processBulk`
+
+#### `MedianFilter<T>` — P3
+Applies a sliding-window median filter to reject impulse noise. More effective than a moving average for impulsive interference; common in measurement and instrumentation pipelines.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `window_size`
+- **Processing:** `processBulk`
+
+---
+
+## Module: fourier
+
+#### `IFFT<T, U, FourierAlgorithm>` — P1
+Computes the Inverse (Fast) Fourier Transform. The direct counterpart to `FFT`; required for any synthesis chain (OFDM modulation, overlap-add filtering, spectral shaping).
+- **Ports:** `PortIn<DataSet<T>> in`, `PortOut<U> out`
+- **Settings:** `fft_size`, `window_type` (applied before transform for spectral leakage control on reconstruction)
+- **Processing:** `processBulk`
+
+#### `PolyphaseChannelizer<T>` — P2
+Splits a wideband input stream into N equal-width sub-band channels using a polyphase filter bank. Each output port carries one channel at `sample_rate / N`. The standard building block for spectrum surveillance and multi-channel receivers.
+- **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> out`
+- **Settings:** `n_channels`, `taps`, `oversample_rate`
+- **Processing:** `processBulk`
+
+#### `SpectralSubtractor<T>` — P3
+Estimates the noise floor from a silent reference interval and subtracts it in the frequency domain to reduce stationary noise. Useful in measurement and audio processing chains.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size`, `alpha` (spectral floor update rate), `reference_frames`
+- **Processing:** `processBulk`
+
+---
+
+## Module: demod (new module suggested)
+
+The framework currently has no demodulation blocks. The following cover the most common analog and digital cases.
+
+#### `QuadratureDemod<T>` — P1
+FM demodulator: computes instantaneous frequency from the argument of the product of each sample with the conjugate of the previous sample: `out[n] = arg(in[n] · conj(in[n-1])) · gain`. The standard building block for FM broadcast and narrowband FM.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<T> out`
+- **Settings:** `gain` (typically `sample_rate / (2π · max_deviation)`)
+- **Processing:** `processOne`
+
+#### `AmDemod<T>` — P2
+AM envelope detector: computes `abs(in)` and optionally removes the carrier DC. Handles both DSB-LC and DSB-SC.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<T> out`
+- **Settings:** `remove_dc` (bool)
+- **Processing:** `processOne`
+
+#### `PLL<T>` — P1
+Phase-Locked Loop for carrier recovery: tracks an input carrier and outputs a locked reference sinusoid. Essential for coherent demodulation of AM, PM, and narrowband FM signals.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `loop_bandwidth`, `max_freq`, `min_freq`
+- **Processing:** `processOne`
+
+#### `CostasLoop<T>` — P2
+Costas loop for joint carrier-frequency and carrier-phase recovery from BPSK, QPSK, or 8-PSK signals. Outputs the phase-corrected baseband symbols.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `loop_bandwidth`, `order` (2 = BPSK, 4 = QPSK, 8 = 8PSK)
+- **Processing:** `processOne`
+
+#### `ClockRecoveryMM<T>` — P2
+Mueller-Müller symbol timing recovery: adjusts the sampling instant to align with symbol centres using a feedback loop driven by the Mueller-Müller error signal.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `omega` (samples per symbol), `loop_bandwidth`, `gain_mu`, `gain_omega`
+- **Processing:** `processBulk` (variable output rate)
+
+---
+
+## Module: coding (new module suggested)
+
+#### `PackBits<T>` — P2
+Packs `bits_per_chunk` LSBs of each input byte into a densely packed output byte stream. Standard pre-FEC or pre-modulator packing step.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `bits_per_chunk`
+- **Processing:** `processBulk`
+
+#### `UnpackBits<T>` — P2
+Unpacks each input byte into `bits_per_chunk` output bytes, one bit per byte (LSB-justified). Counterpart to `PackBits`.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `bits_per_chunk`
+- **Processing:** `processBulk`
+
+#### `DifferentialEncoder<T>` — P2
+Encodes the input bit stream differentially: `out[n] = out[n-1] XOR in[n]`. Removes phase ambiguity in BPSK/QPSK systems.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+#### `DifferentialDecoder<T>` — P2
+Decodes differentially-encoded bits: `out[n] = in[n] XOR in[n-1]`. Counterpart to `DifferentialEncoder`.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Processing:** `processOne`
+
+#### `Scrambler<T>` — P3
+XORs the input with a pseudo-random binary sequence generated by a linear feedback shift register (LFSR). Used for data whitening to improve spectral flatness and aid clock recovery.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `mask`, `seed`, `len`
+- **Processing:** `processOne`
+
+#### `CrcCompute<T>` — P2
+Computes a CRC-8, CRC-16, or CRC-32 checksum over a burst delimited by tags and appends (source mode) or verifies and strips (sink mode) the checksum bytes.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `poly`, `initial_value`, `mode` (append/verify)
+- **Processing:** `processBulk` — `NoDefaultTagForwarding`
+
+---
+
+## Module: fileio
+
+#### `WavFileSource<T>` — P2
+Reads a WAV audio file (PCM, floating-point) and streams the samples as a typed output, exposing the sample rate from the file header as a tag or setting. The most common audio file format; needed for offline audio processing without format conversion.
+- **Ports:** `PortOut<T> out`
+- **Settings:** `file_name`, `repeat`
+- **Processing:** `processBulk`
+
+#### `WavFileSink<T>` — P2
+Writes a sample stream to a WAV file at a given sample rate. Counterpart to `WavFileSource`.
+- **Ports:** `PortIn<T> in`
+- **Settings:** `file_name`, `sample_rate`, `bits_per_sample`
+- **Processing:** `processBulk`
+
+#### `SigMFSource<T>` — P2
+Reads a SigMF recording (`.sigmf-data` + `.sigmf-meta` pair) and streams the samples, mapping SigMF annotations to GR4 tags. SigMF is the standard interchange format for SDR captures.
+- **Ports:** `PortOut<T> out`
+- **Settings:** `file_name` (base name without extension), `repeat`
+- **Processing:** `processBulk`
+
+#### `SigMFSink<T>` — P2
+Records a sample stream to SigMF format, writing stream tags as SigMF annotations. Counterpart to `SigMFSource`.
+- **Ports:** `PortIn<T> in`
+- **Settings:** `file_name`, `sample_rate`, `datatype`, `author`, `description`
+- **Processing:** `processBulk`
+
+#### `CsvFileSink<T>` — P3
+Writes one or more scalar streams to a CSV file with configurable column headers and separators. Useful for logging measurements and exporting data to analysis tools.
+- **Ports:** `std::vector<PortIn<T>> in`
+- **Settings:** `file_name`, `column_names`, `separator`, `timestamp_column`
+- **Processing:** `processBulk`
+
+#### `CsvFileSource<T>` — P3
+Reads a CSV file and streams one column per output port. Counterpart to `CsvFileSink`.
+- **Ports:** `std::vector<PortOut<T>> out`
+- **Settings:** `file_name`, `column_indices`, `separator`, `skip_header`
+- **Processing:** `processBulk`
+
+---
+
+## Module: network (new module suggested)
+
+#### `UdpSource<T>` — P2
+Receives raw sample data over UDP and outputs it as a typed stream. Low-latency network data source for distributed SDR or instrument interfacing.
+- **Ports:** `PortOut<T> out`
+- **Settings:** `bind_address`, `port`, `payload_size`, `eof_on_disconnect`
+- **Processing:** `processBulk` (blocking)
+
+#### `UdpSink<T>` — P2
+Sends a sample stream over UDP. Counterpart to `UdpSource`.
+- **Ports:** `PortIn<T> in`
+- **Settings:** `address`, `port`, `payload_size`
+- **Processing:** `processBulk`
+
+#### `ZmqSource<T>` — P2
+Receives sample data over a ZeroMQ socket (PUB/SUB or PUSH/PULL). Enables high-throughput inter-process and inter-host data transport with minimal coupling.
+- **Ports:** `PortOut<T> out`
+- **Settings:** `address`, `socket_type`, `timeout_ms`, `hwm`
+- **Processing:** `processBulk`
+
+#### `ZmqSink<T>` — P2
+Publishes a sample stream over a ZeroMQ socket. Counterpart to `ZmqSource`.
+- **Ports:** `PortIn<T> in`
+- **Settings:** `address`, `socket_type`, `hwm`
+- **Processing:** `processBulk`
+
+---
+
+## Module: audio (new module suggested)
+
+#### `AudioSource<T>` — P2
+Captures audio samples from a system audio device (PortAudio / PipeWire / ALSA). Provides a real-time audio input stream at configurable sample rate and buffer size.
+- **Ports:** `std::vector<PortOut<T>> out` (one per channel)
+- **Settings:** `device_name`, `sample_rate`, `buffer_size`, `n_channels`
+- **Processing:** `processBulk` (blocking)
+
+#### `AudioSink<T>` — P2
+Plays a sample stream through a system audio device. Counterpart to `AudioSource`.
+- **Ports:** `std::vector<PortIn<T>> in`
+- **Settings:** `device_name`, `sample_rate`, `buffer_size`, `n_channels`
+- **Processing:** `processBulk` (blocking)
+
+---
+
+## Module: electrical
+
+#### `HarmonicAnalyser<T>` — P2
+Measures the amplitude and phase of the fundamental and a configurable number of harmonics from a periodic signal using a synchronised DFT. Needed for THD (total harmonic distortion) and harmonic order analysis in power-quality measurement.
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `fundamental_frequency`, `n_harmonics`, `sample_rate`, `window_size`
+- **Processing:** `processBulk`
+
+#### `TotalHarmonicDistortion<T>` — P2
+Computes Total Harmonic Distortion (THD and THD+N) from harmonic amplitude measurements. Accepts the output of `HarmonicAnalyser` or a spectrum.
+- **Ports:** `PortIn<DataSet<T>> in`, `PortOut<T> thd`, `PortOut<T> thd_n`
+- **Settings:** `n_harmonics`
+- **Processing:** `processBulk`
+
+#### `PhasorEstimator<T>` — P2
+Estimates the complex phasor (amplitude and phase) of a near-sinusoidal signal at a known frequency using a Goertzel filter or a synchronous DFT over one cycle. More efficient than a full FFT for single-frequency measurement.
+- **Ports:** `PortIn<T> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `frequency`, `sample_rate`, `window_size`
+- **Processing:** `processBulk`
+
+#### `GridFrequencyEstimator<T>` — P2
+Estimates the instantaneous frequency of a power-grid waveform (45–65 Hz range) using a zero-crossing or PLL method optimised for 50/60 Hz signals with low SNR. More specialised and more robust than the general-purpose `FrequencyEstimatorTimeDomain` for grid applications.
+- **Ports:** `PortIn<T> in`, `PortOut<T> frequency`
+- **Settings:** `sample_rate`, `nominal_frequency` (50 or 60 Hz), `filter_bandwidth`
+- **Processing:** `processBulk`
+
+---
+
+## Summary by priority
+
+| Priority | Count | Examples |
+|---|---|---|
+| P1 | 12 | `Decimator`, `Interpolator`, `RationalResampler`, `Keep1InN`, `StreamToVector`, `VectorToStream`, `MovingAverage`, `DCBlocker`, `HilbertTransform`, `IFFT`, `QuadratureDemod`, `PLL` |
+| P2 | 33 | `PolyphaseArbitraryResampler`, `KeepMInN`, `StreamMux`, `StreamDemux`, `Repeat`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `MovingRms`, `Clamp`, `Threshold`, `PhaseUnwrap`, `Conjugate`, `Accumulator`, `Differentiator`, `PeakDetector`, `Correlation`, `Squelch`, `Convolver`, `AdaptiveLmsFilter`, `PolyphaseChannelizer`, `AmDemod`, `CostasLoop`, `ClockRecoveryMM`, `PackBits`, `UnpackBits`, `DifferentialEncoder`, `DifferentialDecoder`, `CrcCompute`, `WavFileSource/Sink`, `SigMFSource/Sink`, `UdpSource/Sink`, `ZmqSource/Sink`, `AudioSource/Sink`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `PhasorEstimator`, `GridFrequencyEstimator` |
+| P3 | 8 | `PolyphaseArbitraryResampler`, `Histogram`, `MedianFilter`, `SpectralSubtractor`, `Scrambler`, `CsvFileSink/Source` |
+| **Total** | **53** | |
