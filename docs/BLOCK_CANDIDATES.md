@@ -108,6 +108,56 @@ Multiplies a block of `window_size` samples by a named window function (Hann, Ha
 
 ---
 
+### Flow control
+
+#### `Throttle<T>` — P2
+Limits sample throughput to a target wall-clock rate by sleeping when the graph produces samples faster than the rate allows. Essential whenever a graph feeds a real-time sink (audio device, SDR hardware, network socket) that cannot absorb samples at full CPU speed; without it the output buffer overflows or the UI becomes unresponsive.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `sample_rate`, `maximum_items_per_chunk`
+- **Processing:** `processBulk`
+
+#### `Head<T>` — P2
+Passes exactly `n_samples` samples downstream then signals `requestStop()`. The fundamental primitive for finite-length simulations, unit tests that drive a graph with a fixed burst, and batch-processing pipelines.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `n_samples`
+- **Processing:** `processBulk`
+
+#### `Skip<T>` — P2
+Discards the first `n_samples` samples and passes all subsequent samples unchanged. Complements `Head<T>` for windowed extraction; also useful for skipping filter warm-up before measuring steady-state output.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `n_samples`
+- **Processing:** `processBulk`
+
+---
+
+### Sources
+
+#### `ChirpSource<T>` — P2
+Generates a linear frequency sweep from `start_frequency` to `stop_frequency` over `sweep_length` samples, then either stops or repeats. Used in radar, sonar, spread-spectrum testing, and impulse-response measurement (a chirp covers a wide bandwidth with uniform energy).
+- **Ports:** `PortOut<T> out`
+- **Settings:** `start_frequency`, `stop_frequency`, `sample_rate`, `sweep_length`, `repeat` (bool), `amplitude`
+- **State:** `std::size_t _sample` — current position within sweep
+- **Processing:** `processBulk`
+
+#### `AwgnChannel<T>` — P2
+Adds white Gaussian noise at a configurable SNR or noise standard deviation to a passthrough signal. Indispensable for simulation and BER testing; without it a noise source must be wired up and mixed manually outside the block graph.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `noise_stddev` or `snr_db` (one used, other derived), `seed`
+- **State:** `std::mt19937 _rng`, `std::normal_distribution<value_type> _dist`
+- **Processing:** `processOne`
+
+---
+
+### Framing
+
+#### `HeaderPayloadDemux<T>` — P2
+Splits a tagged stream into header and payload sections. On receiving a trigger tag (e.g. from `EnergyDetector` or `Correlation`), it forwards exactly `header_length` samples to one output port and the following `payload_length` samples to a second output port, then returns to armed state. Essential for packet radio and burst-mode decoders.
+- **Ports:** `PortIn<T> in`, `PortOut<T> header`, `PortOut<T> payload`
+- **Settings:** `header_length`, `payload_length`, `trigger_tag_key`
+- **Processing:** `processBulk` — `NoDefaultTagForwarding`
+
+---
+
 ## Module: math
 
 #### `MovingAverage<T>` — P1 ✓ implemented
@@ -168,6 +218,19 @@ Computes the cross-correlation between two input streams over a sliding window. 
 - **Settings:** `window_size`
 - **Processing:** `processBulk`
 
+#### `AutoCorrelation<T>` — P2
+Computes `r[k] = Σ x[n]·conj(x[n-k])` for lags k = 0..`max_lag` over a sliding window of `window_size` samples. Distinct from `Correlation` (which cross-correlates two separate streams). Needed for OFDM timing synchronisation (CP-based autocorrelator), carrier frequency offset estimation from the CP, and channel sounding.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out` — emits `max_lag + 1` correlation values per input block
+- **Settings:** `window_size`, `max_lag`
+- **Processing:** `processBulk`
+
+#### `InstantaneousFrequency<T>` — P2
+Computes the instantaneous frequency of a complex signal per sample: `f[n] = arg(x[n]·conj(x[n-1])) / (2π·Ts)`. Mathematically equivalent to `PhaseUnwrap` + `Differentiator` in series but avoids the intermediate port and an extra `2π` normalisation step. Common in FM demodulation analysis and vibration monitoring.
+- **Ports:** `PortIn<T> in` (complex), `PortOut<value_type> out` (real)
+- **Settings:** `sample_rate` (used to scale output to Hz; set to 1 for normalised frequency)
+- **State:** `T _prev`
+- **Processing:** `processOne`
+
 ---
 
 ## Module: filter
@@ -202,6 +265,13 @@ Applies a sliding-window median filter to reject impulse noise. More effective t
 - **Settings:** `window_size`
 - **Processing:** `processBulk`
 
+#### `BiquadFilter<T>` — P2
+Direct-form II transposed second-order IIR section (biquad). More numerically stable than the generic `iir_filter` for high-Q designs because it avoids accumulating round-off error in the feedback path. Accepts standard `[b0, b1, b2, a1, a2]` coefficients, enabling direct use of audio/DSP coefficient tables. Supports cascading multiple sections for higher-order filters.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `b0`, `b1`, `b2`, `a1`, `a2`
+- **State:** two delay elements `_w1`, `_w2` (direct-form II transposed)
+- **Processing:** `processOne` — stateless coefficient path, minimal state
+
 #### `FractionalDelayLine<T>` — P2
 Delays a signal by a non-integer number of samples using a Farrow filter (polynomial interpolation) or a Lagrange FIR. Required wherever timing alignment at sub-sample resolution is needed: clock recovery feedback, pre-matched-filter alignment, and multi-channel coherent combining.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
@@ -211,6 +281,20 @@ Delays a signal by a non-integer number of samples using a Farrow filter (polyno
 
 #### `WienerFilter<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::filter::WienerFilter<T>` in `blocks/filter/include/gnuradio-4.0/filter/WienerFilter.hpp`. Trains on paired `(in, desired)` streams for `training_length` samples, solves R_xx·h = r_xd via Gaussian elimination with partial pivoting and diagonal regularisation, then applies frozen FIR taps. Supports float, double, complex<float>, complex<double>.
+
+#### `KalmanFilter<T>` — P2
+Recursive optimal state estimator for linear dynamic systems with Gaussian process and observation noise. Alternates between a predict step (`x̂[k|k-1] = F·x̂[k-1]`, `P[k|k-1] = F·P·F^T + Q`) and an update step (`K = P·H^T·(H·P·H^T+R)^{-1}`, `x̂ += K·(z−H·x̂)`, `P = (I−K·H)·P`). Distinct from `WienerFilter` in that it handles non-stationary dynamic models and propagates a full error-covariance matrix at every step.
+- **Ports:** `PortIn<T> in` (observation z[k], length `obs_dim`), `PortOut<T> out` (state estimate x̂[k], length `state_dim`)
+- **Settings:** `state_dim`, `obs_dim`, `F` (state-transition matrix, flat vector, length state_dim²), `H` (observation matrix, obs_dim×state_dim), `Q` (process noise covariance, state_dim²), `R` (observation noise covariance, obs_dim²), `initial_state` (state_dim), `initial_covariance` (state_dim²)
+- **State:** `std::vector<T> _xHat` (state estimate), `std::vector<T> _P` (error-covariance matrix)
+- **Processing:** `processBulk` — vector-valued input/output; each call processes one observation vector per sample
+
+#### `SteadyStateKalman<T>` — P2
+Simplified Kalman filter for time-invariant systems where the filter gain converges to a fixed steady-state value. Solves the Discrete Algebraic Riccati Equation (DARE) in `settingsChanged` to obtain the steady-state gain K∞; per-sample work is then a single matrix-vector multiply (`x̂[k] = (F − K∞·H·F)·x̂[k−1] + K∞·z[k]`) with no covariance propagation. Significantly lower per-sample cost than `KalmanFilter` when the system model is constant.
+- **Ports:** `PortIn<T> in` (observation z[k], length `obs_dim`), `PortOut<T> out` (state estimate x̂[k], length `state_dim`)
+- **Settings:** `state_dim`, `obs_dim`, `F`, `H`, `Q`, `R`, `initial_state` (same matrix layout as `KalmanFilter`)
+- **State:** `std::vector<T> _xHat`, `std::vector<T> _K` (steady-state gain matrix, state_dim×obs_dim, computed once)
+- **Processing:** `processBulk`
 
 ---
 
@@ -226,6 +310,12 @@ Computes the Inverse (Fast) Fourier Transform. The direct counterpart to `FFT`; 
 Splits a wideband input stream into N equal-width sub-band channels using a polyphase filter bank. Each output port carries one channel at `sample_rate / N`. The standard building block for spectrum surveillance and multi-channel receivers.
 - **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> out`
 - **Settings:** `n_channels`, `taps`, `oversample_rate`
+- **Processing:** `processBulk`
+
+#### `SpectralEstimator<T>` — P2
+Estimates the power spectral density using Welch's method: overlapping windowed FFT frames are averaged to reduce variance. Far more useful for signal monitoring and characterisation than a single FFT frame; the existing `FFT` block provides the transform kernel so this block adds only overlap buffering, window application, and accumulation.
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<value_type>> out`
+- **Settings:** `fft_size`, `window_type`, `overlap` (fraction 0–1), `n_averages`
 - **Processing:** `processBulk`
 
 #### `SpectralSubtractor<T>` — P3
@@ -263,6 +353,13 @@ Mueller-Müller symbol timing recovery: adjusts the sampling instant to align wi
 - **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
 - **Settings:** `omega` (samples per symbol), `loop_bandwidth`, `gain_mu`, `gain_omega`
 - **Processing:** `processBulk` (variable output rate)
+
+#### `SymbolSync<T>` — P2
+Symbol timing synchronisation combining a Gardner timing error detector with a PI loop controller and a `FractionalDelayLine` interpolator. Adjusts the effective sampling phase continuously to align output samples with symbol centres. The Gardner detector is data-aided (decision-directed) and works for any linearly modulated signal (BPSK, QPSK, QAM) without a separate pilot. Requires `FractionalDelayLine` as a prerequisite.
+- **Ports:** `PortIn<std::complex<T>> in`, `PortOut<std::complex<T>> out`
+- **Settings:** `sps` (samples per symbol), `loop_bandwidth`, `damping_factor`, `max_deviation`
+- **State:** PI loop state, fractional delay accumulator
+- **Processing:** `processBulk` (variable output rate — one sample per symbol)
 
 ---
 
@@ -306,6 +403,36 @@ Computes a CRC-8, CRC-16, or CRC-32 checksum over a burst delimited by tags and 
 Converts between natural binary and Gray code (reflected binary). Each output bit differs from the corresponding input by at most one bit transition per symbol, which reduces errors in ADC/DAC index decoding and FSK symbol mapping.
 - **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
 - **Processing:** `processOne` — stateless (`n ^ (n >> 1)` for encode; iterative XOR-fold for decode)
+
+#### `ConvEncoder` — P3
+Rate-1/2 or rate-1/3 convolutional encoder using a configurable constraint length and generator polynomials. Produces the standard encoded bit stream for use with a `ViterbiDecoder`. Stateless except for the shift register.
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `constraint_length`, `generator_polynomials`, `rate` (1/2 or 1/3)
+- **State:** `uint32_t _shiftReg`
+- **Processing:** `processOne`
+
+#### `ViterbiDecoder` — P3
+Maximum-likelihood decoder for rate-1/2 or rate-1/3 convolutional codes using the Viterbi algorithm. Accepts soft or hard decisions. The trellis is described by the same generator polynomials as `ConvEncoder`. Typical use: FEC on packet radio, satellite, and broadcast links.
+- **Ports:** `PortIn<float> in` (soft LLRs) or `PortIn<uint8_t> in` (hard bits), `PortOut<uint8_t> out`
+- **Settings:** `constraint_length`, `generator_polynomials`, `traceback_depth`
+- **Processing:** `processBulk`
+- **Note:** implement `ConvEncoder` first to generate test vectors.
+
+---
+
+## Module: ofdm (new module suggested)
+
+#### `CyclicPrefixAdd<T>` — P2
+Prepends a cyclic prefix of length `cp_length` to each block of `fft_size` samples. The cyclic prefix copies the last `cp_length` samples of the IFFT output to the front, converting linear convolution to circular convolution and eliminating inter-symbol interference in multipath channels. Required to make the existing `IFFT` block useful for OFDM transmission.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size`, `cp_length`
+- **Processing:** `processBulk` — `Resampling<fft_size, fft_size + cp_length>`
+
+#### `CyclicPrefixRemove<T>` — P2
+Strips the `cp_length`-sample cyclic prefix from each received OFDM symbol before passing the remaining `fft_size` samples to the FFT block. Counterpart to `CyclicPrefixAdd`.
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size`, `cp_length`
+- **Processing:** `processBulk` — `Resampling<fft_size + cp_length, fft_size>`
 
 ---
 
@@ -453,10 +580,12 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 | Priority | Count | ✓ Implemented | Remaining |
 |---|---|---|---|
 | P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+7 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓ (13/45) | all others |
-| P3 | 9+1 new | — | all |
-| **Total** | **66** | **20 implemented** | **46 remaining** |
+| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓ (13/55) | all others |
+| P3 | 9+4 new | — | all |
+| **Total** | **82** | **20 implemented** | **62 remaining** |
 
 **New blocks added to this file (session 2+):**
-- Unconsidered originally: `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (5 blocks, all P2)
-- From further review: `SchmittTrigger`, `Goertzel`, `FractionalDelayLine` (P2); `GrayCodeEncoder/Decoder` (P3)
+- Unconsidered originally: `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (P2)
+- From further review (round 1): `SchmittTrigger`, `Goertzel`, `FractionalDelayLine`, `WienerFilter`✓ (P2); `GrayCodeEncoder/Decoder` (P3)
+- From further review (round 2): `Throttle`, `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `HeaderPayloadDemux`, `AutoCorrelation`, `InstantaneousFrequency`, `BiquadFilter`, `SpectralEstimator`, `SymbolSync`, `CyclicPrefixAdd/Remove` (P2); `ConvEncoder`, `ViterbiDecoder` (P3)
+- From further review (round 3): `KalmanFilter`, `SteadyStateKalman` (P2)
