@@ -10,6 +10,7 @@ gr_add_block_library(
   MAKE_SHARED_LIBRARY
   HEADERS
   include/gnuradio-4.0/math/Accumulator.hpp
+  include/gnuradio-4.0/math/AgcBlock.hpp
   include/gnuradio-4.0/math/AmDemod.hpp
   include/gnuradio-4.0/math/Clamp.hpp
   include/gnuradio-4.0/math/DbConvert.hpp

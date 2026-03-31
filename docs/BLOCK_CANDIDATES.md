@@ -399,12 +399,8 @@ These blocks were identified as genuine gaps not covered by the original P1/P2/P
 
 ### Module: math
 
-#### `AgcBlock<T>` — P2 (new)
-Automatic Gain Control: tracks output power using an exponential moving average and adjusts a scalar gain each sample to maintain a configurable target RMS level. Without this, users must chain `MovingRms + MultiplyConst` manually. Fundamental for any complete radio receive chain.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `target_power` (linear RMS², default 1.0), `attack_rate` (gain increase per sample, 0–1), `decay_rate` (gain reduction per sample, 0–1), `max_gain`, `min_gain`
-- **Processing:** `processOne` — EMA power estimate + gain clamp + `output = input * gain`
-- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+#### `AgcBlock<T>` — P2 (new) ✓ implemented
+Implemented as `gr::blocks::math::AgcBlock<T>` in `blocks/math/include/gnuradio-4.0/math/AgcBlock.hpp`. Uses per-sample gain adjustment with attack/decay rates; gain clamped to [min_gain, max_gain]. Supports float, double, complex<float>, complex<double>.
 
 #### `PowerToDb<T>` / `DbToPower<T>` — P2 (new) ✓ implemented
 Implemented as `gr::blocks::math::PowerToDb<T>` and `gr::blocks::math::DbToPower<T>` in `blocks/math/include/gnuradio-4.0/math/DbConvert.hpp`. Supports `amplitude_mode` flag (20·log10 vs 10·log10) and configurable `ref`. Types: float, double.

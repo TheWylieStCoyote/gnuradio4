@@ -3,7 +3,7 @@
 Complete listing of all `gr::Block<>` definitions in this repository, organised by module.
 Generated from a two-pass review of the `add-blocks` branch.
 
-**75 blocks** across 10 modules.
+**76 blocks** across 10 modules.
 
 ---
 
@@ -200,6 +200,18 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `sample_rate`, `frequency_shift`, `phase_increment`, `initial_phase`
 - **Processing:** `processOne` — multiplies by a rotating complex phasor
+
+---
+
+### `AgcBlock.hpp`
+
+#### `AgcBlock<T>`
+- **Description:** "automatic gain control: adjusts a scalar gain per sample to maintain target output RMS² power; attack/decay rates control response speed"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `target_power` (default 1), `attack_rate` (default 0.001), `decay_rate` (default 0.001), `max_gain` (default 65536), `min_gain` (default 1e-6)
+- **State:** `value_type _gain`
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
 ---
 
@@ -635,4 +647,4 @@ Generated from a two-pass review of the `add-blocks` branch.
 | timing | 2 |
 | **Total** | **67** |
 
-**Recently added (this session):** `Accumulator`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
+**Recently added (this session):** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert` (PowerToDb + DbToPower), `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator` (math); `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat` (filter).
