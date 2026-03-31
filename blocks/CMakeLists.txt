@@ -1,3 +1,4 @@
+add_subdirectory(coding)
 add_subdirectory(common)
 add_subdirectory(basic)
 add_subdirectory(electrical)
