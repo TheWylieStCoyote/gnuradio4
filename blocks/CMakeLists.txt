@@ -1,5 +1,6 @@
 add_subdirectory(coding)
 add_subdirectory(common)
+add_subdirectory(demod)
 add_subdirectory(basic)
 add_subdirectory(electrical)
 add_subdirectory(fileio)
