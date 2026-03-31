@@ -272,6 +272,24 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk` — dynamic `Resampling<1,1,false>`
 - **Types:** all numeric types
 
+### `StreamToVector.hpp`
+
+#### `StreamToVector<T>`
+- **Description:** "groups `vlen` consecutive input samples into a single DataSet<T> output item"
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `vlen` (default 1024)
+- **Processing:** `processBulk` — `input_chunk_size = vlen`, `output_chunk_size = 1`
+- **Types:** all numeric types
+
+### `VectorToStream.hpp`
+
+#### `VectorToStream<T>`
+- **Description:** "unpacks the first signal of each input DataSet<T> into a flat sample stream of length `vlen`"
+- **Ports:** `PortIn<DataSet<T>> in`, `PortOut<T> out`
+- **Settings:** `vlen` (default 1024)
+- **Processing:** `processBulk` — `input_chunk_size = 1`, `output_chunk_size = vlen`
+- **Types:** all numeric types
+
 ---
 
 ## Module: math (`blocks/math/`)
@@ -535,6 +553,18 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `threshold` (default 0), `high_value` (default 1), `low_value` (default 0)
 - **Processing:** `processOne` — stateless
+- **Types:** `float`, `double`
+
+---
+
+### `Histogram.hpp`
+
+#### `Histogram<T>`
+- **Description:** "amplitude histogram estimator; accumulates `accumulate_n` samples into `n_bins` uniform bins over [`min_value`, `max_value`]; emits one DataSet<T> per window with bin centres as axis and normalised counts as signal"
+- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
+- **Settings:** `n_bins` (default 64), `min_value` (default -1), `max_value` (default 1), `accumulate_n` (default 1024)
+- **State:** `std::vector<std::size_t> _counts`
+- **Processing:** `processBulk` — `input_chunk_size = accumulate_n`, `output_chunk_size = 1`; out-of-range samples are ignored
 - **Types:** `float`, `double`
 
 ---
@@ -822,6 +852,16 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk`
 - **Types:** `float`, `double`
 
+### `MedianFilter.hpp`
+
+#### `MedianFilter<T>`
+- **Description:** "sliding-window median filter; rejects impulse noise; returns the median of the last `window_size` samples"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `window_size` (default 5)
+- **State:** `gr::HistoryBuffer<T> _history`, `std::vector<T> _scratch`
+- **Processing:** `processOne` — outputs T{} until window is full, then returns median
+- **Types:** `float`, `double`
+
 ---
 
 ## Module: http (`blocks/http/`)
@@ -1015,6 +1055,15 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Settings:** `constraint_length` (default 7), `generator_polynomials` (default [0133, 0171])
 - **Processing:** `processBulk` — dynamic `output_chunk_size = len(polys)`
 
+### `ViterbiDecoder.hpp`
+
+#### `ViterbiDecoder`
+- **Description:** "hard-decision Viterbi decoder for convolutional codes; block-mode ACS trellis over `traceback_depth` steps; default NASA K=7 rate-1/2 code [0133, 0171]"
+- **Ports:** `PortIn<uint8_t> in`, `PortOut<uint8_t> out`
+- **Settings:** `constraint_length` (default 7), `generator_polynomials` (default [0133, 0171]), `traceback_depth` (default 35)
+- **State:** `_pathMetric`, `_nextMetric`, `_survivors[D][nStates]`
+- **Processing:** `processBulk` — `input_chunk_size = rate * traceback_depth`, `output_chunk_size = traceback_depth`
+
 ---
 
 ## Module: demod (`blocks/demod/`)
@@ -1082,19 +1131,19 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 | Module | Count |
 |---|---|
-| basic | 33 |
-| math | 18 |
+| basic | 35 |
+| math | 19 |
 | electrical | 7 |
 | fileio | 2 |
 | fourier | 3 |
-| filter | 18 |
+| filter | 19 |
 | http | 2 |
 | soapy | 1 |
 | testing | 12 |
 | ofdm | 2 |
-| coding | 9 |
+| coding | 10 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **114** |
+| **Total** | **118** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN` (basic).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream` (basic).

@@ -47,17 +47,11 @@ Forward M consecutive samples out of every N consumed. Generalises `Keep1InN` fo
 - **Settings:** `m`, `n`, `offset`
 - **Processing:** `processBulk`
 
-#### `StreamToVector<T>` — P1
-Accumulates `vector_size` scalar samples into a single vector-typed output item. The fundamental bridge between sample-stream and block-processing domains (FFT, matrix operations, batch decoders).
-- **Ports:** `PortIn<T> in`, `PortOut<std::vector<T>> out`  
-- **Settings:** `vector_size`
-- **Processing:** `processBulk` — `Resampling<N, 1>`
+#### `StreamToVector<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::basic::StreamToVector<T>` in `blocks/basic/include/gnuradio-4.0/basic/StreamToVector.hpp`.
 
-#### `VectorToStream<T>` — P1
-Unpacks each input vector into `vector_size` scalar output samples. Counterpart to `StreamToVector`.
-- **Ports:** `PortIn<std::vector<T>> in`, `PortOut<T> out`
-- **Settings:** `vector_size`
-- **Processing:** `processBulk` — `Resampling<1, N>`
+#### `VectorToStream<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::basic::VectorToStream<T>` in `blocks/basic/include/gnuradio-4.0/basic/VectorToStream.hpp`.
 
 #### `StreamMux<T>` — P2 ✓ implemented
 Interleaves N input streams into one output stream, cycling through inputs in round-robin order with a configurable number of samples taken from each stream per cycle. Counterpart to `Selector` for ordered interleaving.
@@ -193,11 +187,8 @@ Implemented as `gr::blocks::math::Differentiator<T>` in `blocks/math/include/gnu
 #### `PeakDetector<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::PeakDetector<T>` in `blocks/math/include/gnuradio-4.0/math/PeakDetector.hpp`.
 
-#### `Histogram<T>` — P3
-Accumulates a sample-amplitude histogram over a configurable window and emits it as a `DataSet` output. Used for distribution analysis, ADC characterisation, and density estimation.
-- **Ports:** `PortIn<T> in`, `PortOut<DataSet<T>> out`
-- **Settings:** `n_bins`, `min_value`, `max_value`, `accumulate_n`
-- **Processing:** `processBulk`
+#### `Histogram<T>` — P3 ✓ implemented
+Implemented as `gr::blocks::math::Histogram<T>` in `blocks/math/include/gnuradio-4.0/math/Histogram.hpp`.
 
 #### `Correlation<T>` — P2 ✓ implemented
 Implemented as `gr::blocks::math::Correlation<T>` in `blocks/math/include/gnuradio-4.0/math/Correlation.hpp`.
@@ -236,11 +227,8 @@ Least-Mean-Squares (LMS) adaptive FIR filter with a separate error/reference inp
 - **Settings:** `n_taps`, `step_size` (µ), `leak_factor`
 - **Processing:** `processBulk`
 
-#### `MedianFilter<T>` — P3
-Applies a sliding-window median filter to reject impulse noise. More effective than a moving average for impulsive interference; common in measurement and instrumentation pipelines.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `window_size`
-- **Processing:** `processBulk`
+#### `MedianFilter<T>` — P3 ✓ implemented
+Implemented as `gr::blocks::filter::MedianFilter<T>` in `blocks/filter/include/gnuradio-4.0/filter/MedianFilter.hpp`.
 
 #### `BiquadFilter<T>` — P2 ✓ implemented
 Direct-form II transposed second-order IIR section (biquad). More numerically stable than the generic `iir_filter` for high-Q designs because it avoids accumulating round-off error in the feedback path. Accepts standard `[b0, b1, b2, a1, a2]` coefficients, enabling direct use of audio/DSP coefficient tables. Supports cascading multiple sections for higher-order filters.
@@ -388,12 +376,8 @@ Rate-1/2 or rate-1/3 convolutional encoder using a configurable constraint lengt
 - **State:** `uint32_t _shiftReg`
 - **Processing:** `processOne`
 
-#### `ViterbiDecoder` — P3
-Maximum-likelihood decoder for rate-1/2 or rate-1/3 convolutional codes using the Viterbi algorithm. Accepts soft or hard decisions. The trellis is described by the same generator polynomials as `ConvEncoder`. Typical use: FEC on packet radio, satellite, and broadcast links.
-- **Ports:** `PortIn<float> in` (soft LLRs) or `PortIn<uint8_t> in` (hard bits), `PortOut<uint8_t> out`
-- **Settings:** `constraint_length`, `generator_polynomials`, `traceback_depth`
-- **Processing:** `processBulk`
-- **Note:** implement `ConvEncoder` first to generate test vectors.
+#### `ViterbiDecoder` — P3 ✓ implemented
+Implemented as `gr::blocks::coding::ViterbiDecoder` in `blocks/coding/include/gnuradio-4.0/coding/ViterbiDecoder.hpp`.
 
 ---
 
