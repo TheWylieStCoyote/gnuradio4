@@ -261,6 +261,32 @@ const boost::ut::suite<"Basic[Decimating]Filter"> BasicFilterTests = [] {
         };
     } | std::vector<FilterType>({FilterType::FIR, FilterType::IIR});
 
+    "Interpolator - zero-insertion upsampling"_test = [] {
+        using namespace gr::testing;
+        using T = int;
+
+        constexpr gr::Size_t kInterp = 3U;
+        constexpr gr::Size_t kInputs = 5U;
+
+        gr::Graph flow;
+        auto&     source       = flow.emplaceBlock<CountingSource<T>>({{"n_samples_max", kInputs}});
+        auto&     interpolator = flow.emplaceBlock<gr::filter::Interpolator<T>>({{"interp", kInterp}});
+        auto&     sink         = flow.emplaceBlock<CountingSink<T>>();
+        expect(flow.connect<"out", "in">(source, interpolator).has_value());
+        expect(flow.connect<"out", "in">(interpolator, sink).has_value());
+
+        gr::scheduler::Simple<> sched;
+        if (auto ret = sched.exchange(std::move(flow)); !ret) {
+            throw std::runtime_error(std::format("failed to initialize scheduler: {}", ret.error()));
+        }
+        expect(sched.runAndWait().has_value());
+
+        expect(eq(interpolator.interp, kInterp));
+        expect(eq(interpolator.input_chunk_size, static_cast<gr::Size_t>(1)));
+        expect(eq(interpolator.output_chunk_size, kInterp));
+        expect(eq(sink.count, kInputs * kInterp));
+    };
+
     "Decimator - Low-pass Filter Test"_test = [] {
         using namespace gr::testing;
         using T = int;

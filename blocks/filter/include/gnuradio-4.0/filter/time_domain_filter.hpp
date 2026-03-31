@@ -244,6 +244,39 @@ aliasing and sub-sampling related effects.
     }
 };
 
+GR_REGISTER_BLOCK(gr::filter::Interpolator, [T], [ uint8_t, int8_t, uint16_t, int16_t, uint32_t, int32_t, uint64_t, int64_t, float, double, std::complex<float>, std::complex<double>, gr::UncertainValue<float>, gr::UncertainValue<double> ])
+
+template<typename T>
+struct Interpolator : Block<Interpolator<T>, Resampling<1UZ, 1UZ, false>> {
+    using TParent     = Block<Interpolator<T>, Resampling<1UZ, 1UZ, false>>;
+    using Description = Doc<R""(@brief Basic Interpolator Block
+
+Upsamples input data by a configurable factor using zero insertion: each input
+sample is followed by `interp - 1` zero-valued samples. No anti-imaging filter
+is applied; chain with an FIR low-pass filter to obtain proper interpolation.
+)"">;
+
+    PortIn<T>  in;
+    PortOut<T> out;
+
+    Annotated<gr::Size_t, "interpolation factor", Doc<"Factor by which to upsample input data (≥ 1)">, Visible> interp{1};
+
+    GR_MAKE_REFLECTABLE(Interpolator, in, out, interp);
+
+    void settingsChanged(const property_map& /*oldSettings*/, const property_map& /*newSettings*/) { this->output_chunk_size = interp; }
+
+    [[nodiscard]] work::Status processBulk(std::span<const T> input, std::span<T> output) noexcept {
+        const std::size_t factor = static_cast<std::size_t>(interp);
+        assert(output.size() >= input.size() * factor);
+
+        for (std::size_t i = 0; i < input.size(); ++i) {
+            output[i * factor] = input[i];
+            std::fill_n(output.data() + i * factor + 1, factor - 1, T{});
+        }
+        return work::Status::OK;
+    }
+};
+
 } // namespace gr::filter
 
 #endif // GNURADIO_TIME_DOMAIN_FILTER_HPP
