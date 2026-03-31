@@ -11,6 +11,7 @@ gr_add_block_library(
   HEADERS
   include/gnuradio-4.0/fourier/fft.hpp
   include/gnuradio-4.0/fourier/ifft.hpp
+  include/gnuradio-4.0/fourier/SpectralEstimator.hpp
   LINK_LIBRARIES
   gr-basic
   gr-fourier)
