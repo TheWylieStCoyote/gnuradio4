@@ -25,7 +25,7 @@ Implemented as `gr::filter::Interpolator<T>` in `blocks/filter/include/gnuradio-
 #### `RationalResampler<T>` — P1 ✓ implemented
 Implemented as `gr::blocks::filter::RationalResampler<T>` in `blocks/filter/include/gnuradio-4.0/filter/RationalResampler.hpp`.
 
-#### `PolyphaseArbitraryResampler<T>` — P2
+#### `PolyphaseArbitraryResampler<T>` — P2 ✓ implemented
 Arbitrary (non-rational) resampling using a polyphase filter bank with linear interpolation between phases. Handles continuously varying or irrational resampling ratios. Useful for clock-recovery feedback loops.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `rate`, `n_filters`, `taps`
@@ -265,7 +265,7 @@ Computes the Inverse (Fast) Fourier Transform. The direct counterpart to `FFT`; 
 - **Settings:** `fft_size`, `window_type` (applied before transform for spectral leakage control on reconstruction)
 - **Processing:** `processBulk`
 
-#### `PolyphaseChannelizer<T>` — P2
+#### `PolyphaseChannelizer<T>` — P2 ✓ implemented
 Splits a wideband input stream into N equal-width sub-band channels using a polyphase filter bank. Each output port carries one channel at `sample_rate / N`. The standard building block for spectrum surveillance and multi-channel receivers.
 - **Ports:** `PortIn<T> in`, `std::vector<PortOut<T>> out`
 - **Settings:** `n_channels`, `taps`, `oversample_rate`
