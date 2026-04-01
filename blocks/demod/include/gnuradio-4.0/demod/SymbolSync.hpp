@@ -81,7 +81,9 @@ adjustment. Nominally produces one output sample per `sps` input samples.
 
             // PI loop filter
             _integ = _integ + _ki * err;
-            _omega = std::clamp(_omegaMid + _kp * err + _integ, _omegaMid * T{0.9}, _omegaMid * T{1.1});
+            _omega = std::clamp(_omegaMid + _kp * err + _integ,
+                                _omegaMid * static_cast<T>(0.9),
+                                _omegaMid * static_cast<T>(1.1));
 
             _lastSamp         = curSamp;
             outSpan[outPos++] = curSamp;
