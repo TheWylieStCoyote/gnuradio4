@@ -21,7 +21,8 @@ set(GrBasicBlocks_HDRS
     include/gnuradio-4.0/basic/StreamToVector.hpp
     include/gnuradio-4.0/basic/VectorToStream.hpp
     include/gnuradio-4.0/basic/SyncBlock.hpp
-    include/gnuradio-4.0/basic/Trigger.hpp)
+    include/gnuradio-4.0/basic/Trigger.hpp
+    include/gnuradio-4.0/basic/HeaderPayloadDemux.hpp)
 
 set(GrBasicBlocks_LIBS gr-basic gr-testing)
 

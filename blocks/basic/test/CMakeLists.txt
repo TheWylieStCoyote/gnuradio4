@@ -34,6 +34,9 @@ target_link_libraries(qa_StreamDemux PRIVATE gr-basic)
 add_ut_test(qa_StreamToVector)
 target_link_libraries(qa_StreamToVector PRIVATE gr-basic)
 
+add_ut_test(qa_HeaderPayloadDemux)
+target_link_libraries(qa_HeaderPayloadDemux PRIVATE gr-basic)
+
 add_ut_test(qa_Converter)
 add_ut_test(qa_Selector)
 add_ut_test(qa_sources)
