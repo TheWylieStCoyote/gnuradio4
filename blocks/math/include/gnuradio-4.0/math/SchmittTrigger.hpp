@@ -22,8 +22,8 @@ initialised to `low_value` and state is preserved across `processBulk` calls.
     PortIn<T>  in;
     PortOut<T> out;
 
-    Annotated<T, "upper_threshold", Doc<"rising edge trigger level">,   Visible> upper_threshold{T{0.5}};
-    Annotated<T, "lower_threshold", Doc<"falling edge trigger level">,  Visible> lower_threshold{T{-0.5}};
+    Annotated<T, "upper_threshold", Doc<"rising edge trigger level">,   Visible> upper_threshold{static_cast<T>(0.5)};
+    Annotated<T, "lower_threshold", Doc<"falling edge trigger level">,  Visible> lower_threshold{static_cast<T>(-0.5)};
     Annotated<T, "high_value",      Doc<"output when state is high">,   Visible> high_value{T{1}};
     Annotated<T, "low_value",       Doc<"output when state is low">,    Visible> low_value{T{0}};
 

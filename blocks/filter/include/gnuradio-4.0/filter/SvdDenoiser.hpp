@@ -48,7 +48,7 @@ Singular values are kept if ALL criteria are satisfied:
         energy_fraction = RealT{1};
 
     Annotated<RealT, "hop fraction", Doc<"SVD recomputation interval as fraction of window_size">, Unit<"ratio">>
-        hop_fraction = RealT{0.25};
+        hop_fraction = static_cast<RealT>(0.25);
 
     GR_MAKE_REFLECTABLE(SvdDenoiser, in, out, window_size, hankel_rows, max_rank, relative_threshold, absolute_threshold, energy_fraction, hop_fraction);
 

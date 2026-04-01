@@ -68,7 +68,7 @@ adjustment. Nominally produces one output sample per `sps` input samples.
         std::size_t outPos = 0UZ;
 
         while (inPos < inSpan.size() && outPos < outSpan.size()) {
-            const std::size_t halfSps = static_cast<std::size_t>(_omega / T{2} + T{0.5});
+            const std::size_t halfSps = static_cast<std::size_t>(_omega / T{2} + static_cast<T>(0.5));
             if (inPos + static_cast<std::size_t>(_omega) >= inSpan.size()) break;
 
             // Mid-point and end-point samples (linear interpolation from available samples)

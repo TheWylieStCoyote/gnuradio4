@@ -48,7 +48,7 @@ The actual output rate varies slightly as the timing loop converges.
         _omegaMid   = static_cast<T>(sps);
         _omega      = _omegaMid;
         _omegaLimit = _omegaMid * static_cast<T>(omega_rel_limit);
-        _mu         = T{0.5};
+        _mu         = static_cast<T>(0.5);
         _lastSamp   = {};
         _lastOutput = {};
         this->input_chunk_size  = 1U;
