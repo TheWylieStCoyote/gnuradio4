@@ -13,6 +13,7 @@ gr_add_block_library(
   include/gnuradio-4.0/fourier/ifft.hpp
   include/gnuradio-4.0/fourier/SpectralEstimator.hpp
   include/gnuradio-4.0/fourier/SpectralSubtractor.hpp
+  include/gnuradio-4.0/fourier/PolyphaseChannelizer.hpp
   LINK_LIBRARIES
   gr-basic
   gr-fourier)
