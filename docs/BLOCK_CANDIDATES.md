@@ -532,15 +532,13 @@ Implemented as `gr::blocks::math::EnergyDetector<T>` in `blocks/math/include/gnu
 
 ## Summary by priority
 
-| Priority | Count | ✓ Implemented | Remaining |
+| Priority | Count | Implemented | Remaining |
 |---|---|---|---|
-| P1 | 12 | `Decimator`✓, `Interpolator`✓, `Keep1InN`✓, `MovingAverage`✓, `DCBlocker`✓, `HilbertTransform`✓, `QuadratureDemod`✓ (7/12) | `RationalResampler`, `StreamToVector`, `VectorToStream`, `IFFT`, `PLL` |
-| P2 | 38+17 new | `Clamp`✓, `PhaseUnwrap`✓, `Conjugate`✓, `Differentiator`✓, `Accumulator`✓, `MovingRms`✓, `AmDemod`✓, `AgcBlock`✓, `PowerToDb/DbToPower`✓, `Limiter`✓, `CicDecimator/Interpolator`✓, `EnergyDetector`✓, `WienerFilter`✓, `Threshold`✓, `SchmittTrigger`✓, `InstantaneousFrequency`✓, `Goertzel`✓, `AutoCorrelation`✓, `Correlation`✓, `PeakDetector`✓ (20/55) | all others |
-| P3 | 9+4 new | — | all |
-| **Total** | **82** | **20 implemented** | **62 remaining** |
+| P1 | 12 | 12/12 (all ✓) | — |
+| P2 | 55 | 51/55 | `ZmqSource`, `ZmqSink`, `AudioSource`, `AudioSink` (external libs) |
+| P3 | 13 | 13/13 (all ✓) | — |
+| **Total** | **80** | **76/80 (95 %)** | **4 deferred (external library dependency)** |
 
-**New blocks added to this file (session 2+):**
-- Unconsidered originally: `AgcBlock`, `PowerToDb/DbToPower`, `Limiter`, `CicDecimator/Interpolator`, `EnergyDetector` (P2)
-- From further review (round 1): `SchmittTrigger`, `Goertzel`, `FractionalDelayLine`, `WienerFilter`✓ (P2); `GrayCodeEncoder/Decoder` (P3)
-- From further review (round 2): `Throttle`, `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `HeaderPayloadDemux`, `AutoCorrelation`, `InstantaneousFrequency`, `BiquadFilter`, `SpectralEstimator`, `SymbolSync`, `CyclicPrefixAdd/Remove` (P2); `ConvEncoder`, `ViterbiDecoder` (P3)
-- From further review (round 3): `KalmanFilter`, `SteadyStateKalman` (P2)
+**Deferred blocks (require external library not in devcontainer):**
+- `ZmqSource<T>`, `ZmqSink<T>` — need libzmq
+- `AudioSource<T>`, `AudioSink<T>` — need PortAudio / PipeWire / ALSA

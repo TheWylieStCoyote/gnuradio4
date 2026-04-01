@@ -11,6 +11,7 @@
 #include <complex>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include <gnuradio-4.0/Block.hpp>
 #include <gnuradio-4.0/BlockRegistry.hpp>
@@ -21,7 +22,7 @@ namespace gr::blocks::fileio {
 GR_REGISTER_BLOCK(gr::blocks::fileio::UdpSource, [T], [ float, double, std::complex<float>, std::complex<double> ])
 
 template<typename T>
-struct UdpSource : gr::Block<UdpSource<T>, gr::Resampling<1UZ, 1UZ, false>> {
+struct UdpSource : gr::Block<UdpSource<T>> {
     using Description = Doc<R""(
 @brief UDP datagram source — receives raw sample data over a UDP socket.
 
@@ -48,8 +49,6 @@ triggers `requestStop()`.
     void settingsChanged(const gr::property_map& /*old*/, const gr::property_map& /*newSettings*/) {
         _samplesPerPacket = std::max(std::size_t{1},
                                      static_cast<std::size_t>(payload_size) / sizeof(T));
-        this->input_chunk_size  = static_cast<gr::Size_t>(1);
-        this->output_chunk_size = static_cast<gr::Size_t>(_samplesPerPacket);
     }
 
     std::expected<void, gr::Error> start() {
@@ -102,7 +101,7 @@ triggers `requestStop()`.
         return {};
     }
 
-    [[nodiscard]] gr::work::Status processBulk(std::span<T> outSpan) noexcept {
+    [[nodiscard]] gr::work::Status processBulk(gr::OutputSpanLike auto& outSpan) noexcept {
         if (_sock < 0) return gr::work::Status::ERROR;
 
         const std::size_t payloadBytes = _samplesPerPacket * sizeof(T);
@@ -110,6 +109,7 @@ triggers `requestStop()`.
 
         const ::ssize_t n = ::recv(_sock, buf.data(), payloadBytes, 0);
         if (n <= 0) {
+            outSpan.publish(0UZ);
             if (static_cast<bool>(eof_on_disconnect)) this->requestStop();
             return gr::work::Status::OK;
         }
@@ -117,9 +117,7 @@ triggers `requestStop()`.
         const std::size_t nSamples = std::min(_samplesPerPacket,
                                                static_cast<std::size_t>(n) / sizeof(T));
         std::memcpy(outSpan.data(), buf.data(), nSamples * sizeof(T));
-        if (nSamples < _samplesPerPacket) {
-            std::fill(outSpan.begin() + static_cast<std::ptrdiff_t>(nSamples), outSpan.end(), T{});
-        }
+        outSpan.publish(nSamples);
         return gr::work::Status::OK;
     }
 };

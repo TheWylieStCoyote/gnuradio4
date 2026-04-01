@@ -17,7 +17,7 @@ namespace gr::blocks::fileio {
 GR_REGISTER_BLOCK(gr::blocks::fileio::CsvFileSource, [T], [ float, double, std::complex<float>, std::complex<double> ])
 
 template<typename T>
-struct CsvFileSource : gr::Block<CsvFileSource<T>, gr::Resampling<1UZ, 1UZ, false>> {
+struct CsvFileSource : gr::Block<CsvFileSource<T>> {
     using Description = Doc<R""(
 @brief Reads a CSV file and streams one value per output port per row.
 
@@ -44,10 +44,7 @@ outputs require two consecutive CSV columns (real, imaginary). The block calls
     std::vector<std::size_t>   _colIdx{};
 
     void settingsChanged(const gr::property_map& /*old*/, const gr::property_map& /*newSettings*/) {
-        const std::size_t n = static_cast<std::size_t>(n_outputs);
-        outputs.resize(n);
-        this->input_chunk_size  = static_cast<gr::Size_t>(1);
-        this->output_chunk_size = static_cast<gr::Size_t>(1);
+        outputs.resize(static_cast<std::size_t>(n_outputs));
     }
 
     std::expected<void, gr::Error> start() {
@@ -77,33 +74,36 @@ outputs require two consecutive CSV columns (real, imaginary). The block calls
 
     template<gr::OutputSpanLike TOutSpan>
     [[nodiscard]] gr::work::Status processBulk(std::span<TOutSpan>& outs) noexcept {
-        if (!_file.is_open()) return gr::work::Status::ERROR;
+        if (!_file.is_open() || outs.empty()) return gr::work::Status::ERROR;
 
-        std::string line;
-        if (!std::getline(_file, line)) {
-            this->requestStop();
-            return gr::work::Status::OK;
-        }
+        const char        sep      = static_cast<const std::string&>(separator).empty()
+                                         ? ',' : static_cast<const std::string&>(separator)[0];
+        const std::size_t nSamples = outs[0].size();
+        std::size_t       s        = 0;
 
-        // tokenise the line
-        const char sep = static_cast<const std::string&>(separator).empty()
-                             ? ','
-                             : static_cast<const std::string&>(separator)[0];
-        std::vector<std::string> tokens;
-        std::istringstream       ss{line};
-        std::string              tok;
-        while (std::getline(ss, tok, sep)) tokens.push_back(std::move(tok));
+        for (; s < nSamples; ++s) {
+            std::string line;
+            if (!std::getline(_file, line)) {
+                this->requestStop();
+                break;
+            }
+            std::vector<std::string> tokens;
+            std::istringstream       ss{line};
+            std::string              tok;
+            while (std::getline(ss, tok, sep)) tokens.push_back(std::move(tok));
 
-        for (std::size_t i = 0; i < outs.size(); ++i) {
-            const std::size_t col = _colIdx[i];
-            if constexpr (gr::meta::complex_like<T>) {
-                const value_type re = (col     < tokens.size()) ? static_cast<value_type>(std::stod(tokens[col]))     : value_type{};
-                const value_type im = (col + 1 < tokens.size()) ? static_cast<value_type>(std::stod(tokens[col + 1])) : value_type{};
-                outs[i][0] = T{re, im};
-            } else {
-                outs[i][0] = (col < tokens.size()) ? static_cast<T>(std::stod(tokens[col])) : T{};
+            for (std::size_t i = 0; i < outs.size(); ++i) {
+                const std::size_t col = _colIdx[i];
+                if constexpr (gr::meta::complex_like<T>) {
+                    const value_type re = (col     < tokens.size()) ? static_cast<value_type>(std::stod(tokens[col]))     : value_type{};
+                    const value_type im = (col + 1 < tokens.size()) ? static_cast<value_type>(std::stod(tokens[col + 1])) : value_type{};
+                    outs[i][s] = T{re, im};
+                } else {
+                    outs[i][s] = (col < tokens.size()) ? static_cast<T>(std::stod(tokens[col])) : T{};
+                }
             }
         }
+        for (auto& out : outs) out.publish(s);
         return gr::work::Status::OK;
     }
 };

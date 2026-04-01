@@ -21,7 +21,7 @@ namespace gr::blocks::fileio {
 GR_REGISTER_BLOCK(gr::blocks::fileio::UdpSink, [T], [ float, double, std::complex<float>, std::complex<double> ])
 
 template<typename T>
-struct UdpSink : gr::Block<UdpSink<T>, gr::Resampling<1UZ, 1UZ, false>> {
+struct UdpSink : gr::Block<UdpSink<T>> {
     using Description = Doc<R""(
 @brief UDP datagram sink — sends a sample stream as UDP datagrams.
 
@@ -46,8 +46,6 @@ provides exactly one packet's worth of samples per call.
     void settingsChanged(const gr::property_map& /*old*/, const gr::property_map& /*newSettings*/) {
         _samplesPerPacket = std::max(std::size_t{1},
                                      static_cast<std::size_t>(payload_size) / sizeof(T));
-        this->input_chunk_size  = static_cast<gr::Size_t>(_samplesPerPacket);
-        this->output_chunk_size = static_cast<gr::Size_t>(1);
     }
 
     std::expected<void, gr::Error> start() {
@@ -77,16 +75,18 @@ provides exactly one packet's worth of samples per call.
         return {};
     }
 
-    [[nodiscard]] gr::work::Status processBulk(std::span<const T> inSpan) noexcept {
+    [[nodiscard]] gr::work::Status processBulk(gr::InputSpanLike auto& inSpan) noexcept {
         if (_sock < 0) return gr::work::Status::ERROR;
 
-        const std::size_t n = std::min(_samplesPerPacket, inSpan.size());
-        ::sendto(_sock,
-                 inSpan.data(),
-                 n * sizeof(T),
-                 0,
-                 reinterpret_cast<const struct sockaddr*>(&_destAddr),
-                 sizeof(_destAddr));
+        const std::size_t nPackets = inSpan.size() / _samplesPerPacket;
+        for (std::size_t i = 0; i < nPackets; ++i) {
+            ::sendto(_sock,
+                     inSpan.data() + i * _samplesPerPacket,
+                     _samplesPerPacket * sizeof(T),
+                     0,
+                     reinterpret_cast<const struct sockaddr*>(&_destAddr),
+                     sizeof(_destAddr));
+        }
         return gr::work::Status::OK;
     }
 };

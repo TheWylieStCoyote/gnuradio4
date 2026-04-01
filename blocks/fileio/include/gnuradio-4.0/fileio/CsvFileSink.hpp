@@ -16,7 +16,7 @@ namespace gr::blocks::fileio {
 GR_REGISTER_BLOCK(gr::blocks::fileio::CsvFileSink, [T], [ float, double, std::complex<float>, std::complex<double> ])
 
 template<typename T>
-struct CsvFileSink : gr::Block<CsvFileSink<T>, gr::Resampling<1UZ, 1UZ, false>> {
+struct CsvFileSink : gr::Block<CsvFileSink<T>> {
     using Description = Doc<R""(
 @brief Writes one or more typed sample streams to a CSV file.
 
@@ -39,8 +39,6 @@ The file is opened on `start()` and closed on `stop()`.
 
     void settingsChanged(const gr::property_map& /*old*/, const gr::property_map& /*newSettings*/) {
         inputs.resize(static_cast<std::size_t>(n_inputs));
-        this->input_chunk_size  = static_cast<gr::Size_t>(1);
-        this->output_chunk_size = static_cast<gr::Size_t>(1);
     }
 
     std::expected<void, gr::Error> start() {
@@ -70,19 +68,22 @@ The file is opened on `start()` and closed on `stop()`.
 
     template<gr::InputSpanLike TInSpan>
     [[nodiscard]] gr::work::Status processBulk(std::span<TInSpan>& ins) noexcept {
-        if (!_file.is_open()) return gr::work::Status::ERROR;
-        const std::string sep   = static_cast<const std::string&>(separator);
-        bool              first = true;
-        for (auto& col : ins) {
-            if (!first) _file << sep;
-            first = false;
-            if constexpr (gr::meta::complex_like<T>) {
-                _file << col[0].real() << sep << col[0].imag();
-            } else {
-                _file << col[0];
+        if (!_file.is_open() || ins.empty()) return gr::work::Status::ERROR;
+        const std::string sep    = static_cast<const std::string&>(separator);
+        const std::size_t nSamples = ins[0].size();
+        for (std::size_t s = 0; s < nSamples; ++s) {
+            bool first = true;
+            for (auto& col : ins) {
+                if (!first) _file << sep;
+                first = false;
+                if constexpr (gr::meta::complex_like<T>) {
+                    _file << col[s].real() << sep << col[s].imag();
+                } else {
+                    _file << col[s];
+                }
             }
+            _file << '\n';
         }
-        _file << '\n';
         return gr::work::Status::OK;
     }
 };
