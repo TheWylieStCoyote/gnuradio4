@@ -405,13 +405,13 @@ Writes a sample stream to a WAV file at a given sample rate. Counterpart to `Wav
 - **Settings:** `file_name`, `sample_rate`, `bits_per_sample`
 - **Processing:** `processBulk`
 
-#### `SigMFSource<T>` — P2
+#### `SigMFSource<T>` — P2 ✓ implemented
 Reads a SigMF recording (`.sigmf-data` + `.sigmf-meta` pair) and streams the samples, mapping SigMF annotations to GR4 tags. SigMF is the standard interchange format for SDR captures.
 - **Ports:** `PortOut<T> out`
 - **Settings:** `file_name` (base name without extension), `repeat`
 - **Processing:** `processBulk`
 
-#### `SigMFSink<T>` — P2
+#### `SigMFSink<T>` — P2 ✓ implemented
 Records a sample stream to SigMF format, writing stream tags as SigMF annotations. Counterpart to `SigMFSource`.
 - **Ports:** `PortIn<T> in`
 - **Settings:** `file_name`, `sample_rate`, `datatype`, `author`, `description`
@@ -433,13 +433,13 @@ Reads a CSV file and streams one column per output port. Counterpart to `CsvFile
 
 ## Module: network (new module suggested)
 
-#### `UdpSource<T>` — P2
+#### `UdpSource<T>` — P2 ✓ implemented
 Receives raw sample data over UDP and outputs it as a typed stream. Low-latency network data source for distributed SDR or instrument interfacing.
 - **Ports:** `PortOut<T> out`
 - **Settings:** `bind_address`, `port`, `payload_size`, `eof_on_disconnect`
 - **Processing:** `processBulk` (blocking)
 
-#### `UdpSink<T>` — P2
+#### `UdpSink<T>` — P2 ✓ implemented
 Sends a sample stream over UDP. Counterpart to `UdpSource`.
 - **Ports:** `PortIn<T> in`
 - **Settings:** `address`, `port`, `payload_size`

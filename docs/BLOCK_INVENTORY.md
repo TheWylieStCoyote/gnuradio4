@@ -713,6 +713,42 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk` with dynamic output spans
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
+### `UdpSink.hpp`
+
+#### `UdpSink<T>`
+- **Description:** "sends a typed sample stream as fixed-size UDP datagrams to a configurable host:port"
+- **Ports:** `PortIn<T> in`
+- **Settings:** `address` (default `"127.0.0.1"`), `port` (default 1234), `payload_size` (bytes, default 1472)
+- **Processing:** `processBulk` — `input_chunk_size = payload_size / sizeof(T)`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `UdpSource.hpp`
+
+#### `UdpSource<T>`
+- **Description:** "receives typed sample data from UDP datagrams; blocks until a datagram arrives or timeout elapses"
+- **Ports:** `PortOut<T> out`
+- **Settings:** `bind_address` (default `"0.0.0.0"`), `port` (default 1234), `payload_size` (bytes, default 1472), `timeout_ms` (default 100)
+- **Processing:** `processBulk` — `output_chunk_size = payload_size / sizeof(T)`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `SigMFSink.hpp`
+
+#### `SigMFSink<T>`
+- **Description:** "SigMF sink — writes a sample stream to a `.sigmf-data` binary file with a companion `.sigmf-meta` JSON metadata file"
+- **Ports:** `PortIn<T> in`
+- **Settings:** `file_name`, `sample_rate` (default 1 MHz), `author`, `detail`
+- **Processing:** `processOne` — writes raw little-endian samples; metadata written on `stop()`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `SigMFSource.hpp`
+
+#### `SigMFSource<T>`
+- **Description:** "SigMF source — reads samples from a `.sigmf-data` binary file; optionally reads `sample_rate` from the companion `.sigmf-meta`; calls `requestStop()` at EOF unless `repeat` is true"
+- **Ports:** `PortOut<T> out`
+- **Settings:** `file_name`, `repeat` (default false)
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ---
 
 ## Module: fourier (`blocks/fourier/`)
@@ -1226,7 +1262,7 @@ Generated from a two-pass review of the `add-blocks` branch.
 | basic | 37 |
 | math | 19 |
 | electrical | 7 |
-| fileio | 6 |
+| fileio | 10 |
 | fourier | 5 |
 | filter | 21 |
 | http | 2 |
@@ -1236,6 +1272,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | coding | 10 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **128** |
+| **Total** | **132** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler`, `PolyphaseArbitraryResampler` (filter); `IFFT`, `SpectralEstimator`, `SpectralSubtractor`, `PolyphaseChannelizer` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux`, `Throttle` (basic); `WavFileSource`, `WavFileSink`, `CsvFileSink`, `CsvFileSource` (fileio).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler`, `PolyphaseArbitraryResampler` (filter); `IFFT`, `SpectralEstimator`, `SpectralSubtractor`, `PolyphaseChannelizer` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux`, `Throttle` (basic); `WavFileSource`, `WavFileSink`, `CsvFileSink`, `CsvFileSource`, `UdpSource`, `UdpSink`, `SigMFSource`, `SigMFSink` (fileio).

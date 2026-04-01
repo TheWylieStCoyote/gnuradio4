@@ -15,6 +15,10 @@ gr_add_block_library(
   include/gnuradio-4.0/fileio/CsvFileSource.hpp
   include/gnuradio-4.0/fileio/WavFileSink.hpp
   include/gnuradio-4.0/fileio/WavFileSource.hpp
+  include/gnuradio-4.0/fileio/UdpSink.hpp
+  include/gnuradio-4.0/fileio/UdpSource.hpp
+  include/gnuradio-4.0/fileio/SigMFSink.hpp
+  include/gnuradio-4.0/fileio/SigMFSource.hpp
   LINK_LIBRARIES
   gr-fileio)
 
