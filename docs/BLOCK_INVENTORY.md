@@ -282,6 +282,15 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processOne` — returns `std::tuple<T, T>` for the two output ports
 - **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
+### `Throttle.hpp`
+
+#### `Throttle<T>`
+- **Description:** "wall-clock rate limiter that paces sample throughput to `sample_rate` by sleeping when the graph runs ahead of schedule"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `sample_rate` (default 1e6), `maximum_items_per_chunk` (default 8192, sleep check interval)
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ### `StreamToVector.hpp`
 
 #### `StreamToVector<T>`
@@ -667,6 +676,42 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Ports:** `PortOut<T> out`
 - **Settings:** `file_name`, `repeat`
 - **Processing:** `processBulk` — reads raw binary data via the FileIo reader
+
+### `WavFileSink.hpp`
+
+#### `WavFileSink<T>`
+- **Description:** "RIFF/WAV file sink — writes a typed sample stream to a WAV file; 32-bit float for float/complex<float>, 64-bit float for double/complex<double>; complex inputs produce a stereo file"
+- **Ports:** `PortIn<T> in`
+- **Settings:** `file_name`, `sample_rate` (default 44100)
+- **Processing:** `processOne` — patches RIFF/data chunk sizes on `stop()`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `WavFileSource.hpp`
+
+#### `WavFileSource<T>`
+- **Description:** "RIFF/WAV file source — reads PCM (int16/int32) or IEEE-float WAV files; mono→real output, stereo→complex output; calls `requestStop()` at EOF unless `repeat` is true"
+- **Ports:** `PortOut<T> out`
+- **Settings:** `file_name`, `repeat` (default false)
+- **Processing:** `processOne`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `CsvFileSink.hpp`
+
+#### `CsvFileSink<T>`
+- **Description:** "writes N typed sample streams to a CSV file; one column per input port, one row per sample; optional header row from column_names"
+- **Ports:** `std::vector<PortIn<T>> inputs`
+- **Settings:** `file_name`, `column_names`, `separator` (default `,`), `n_inputs`
+- **Processing:** `processBulk` with dynamic input spans
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
+### `CsvFileSource.hpp`
+
+#### `CsvFileSource<T>`
+- **Description:** "streams CSV columns to N typed output ports; selects columns by index; calls `requestStop()` at EOF"
+- **Ports:** `std::vector<PortOut<T>> outputs`
+- **Settings:** `file_name`, `column_indices`, `separator` (default `,`), `skip_header`, `n_outputs`
+- **Processing:** `processBulk` with dynamic output spans
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
 
 ---
 
@@ -1178,10 +1223,10 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 | Module | Count |
 |---|---|
-| basic | 36 |
+| basic | 37 |
 | math | 19 |
 | electrical | 7 |
-| fileio | 2 |
+| fileio | 6 |
 | fourier | 5 |
 | filter | 21 |
 | http | 2 |
@@ -1191,6 +1236,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | coding | 10 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **123** |
+| **Total** | **128** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler`, `PolyphaseArbitraryResampler` (filter); `IFFT`, `SpectralEstimator`, `SpectralSubtractor`, `PolyphaseChannelizer` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux` (basic).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler`, `PolyphaseArbitraryResampler` (filter); `IFFT`, `SpectralEstimator`, `SpectralSubtractor`, `PolyphaseChannelizer` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux`, `Throttle` (basic); `WavFileSource`, `WavFileSink`, `CsvFileSink`, `CsvFileSource` (fileio).

@@ -101,7 +101,7 @@ Multiplies a block of `window_size` samples by a named window function (Hann, Ha
 
 ### Flow control
 
-#### `Throttle<T>` — P2
+#### `Throttle<T>` — P2 ✓ implemented
 Limits sample throughput to a target wall-clock rate by sleeping when the graph produces samples faster than the rate allows. Essential whenever a graph feeds a real-time sink (audio device, SDR hardware, network socket) that cannot absorb samples at full CPU speed; without it the output buffer overflows or the UI becomes unresponsive.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `sample_rate`, `maximum_items_per_chunk`
@@ -393,13 +393,13 @@ Strips the `cp_length`-sample cyclic prefix from each received OFDM symbol befor
 
 ## Module: fileio
 
-#### `WavFileSource<T>` — P2
+#### `WavFileSource<T>` — P2 ✓ implemented
 Reads a WAV audio file (PCM, floating-point) and streams the samples as a typed output, exposing the sample rate from the file header as a tag or setting. The most common audio file format; needed for offline audio processing without format conversion.
 - **Ports:** `PortOut<T> out`
 - **Settings:** `file_name`, `repeat`
 - **Processing:** `processBulk`
 
-#### `WavFileSink<T>` — P2
+#### `WavFileSink<T>` — P2 ✓ implemented
 Writes a sample stream to a WAV file at a given sample rate. Counterpart to `WavFileSource`.
 - **Ports:** `PortIn<T> in`
 - **Settings:** `file_name`, `sample_rate`, `bits_per_sample`
@@ -417,13 +417,13 @@ Records a sample stream to SigMF format, writing stream tags as SigMF annotation
 - **Settings:** `file_name`, `sample_rate`, `datatype`, `author`, `description`
 - **Processing:** `processBulk`
 
-#### `CsvFileSink<T>` — P3
+#### `CsvFileSink<T>` — P3 ✓ implemented
 Writes one or more scalar streams to a CSV file with configurable column headers and separators. Useful for logging measurements and exporting data to analysis tools.
 - **Ports:** `std::vector<PortIn<T>> in`
 - **Settings:** `file_name`, `column_names`, `separator`, `timestamp_column`
 - **Processing:** `processBulk`
 
-#### `CsvFileSource<T>` — P3
+#### `CsvFileSource<T>` — P3 ✓ implemented
 Reads a CSV file and streams one column per output port. Counterpart to `CsvFileSink`.
 - **Ports:** `std::vector<PortOut<T>> out`
 - **Settings:** `file_name`, `column_indices`, `separator`, `skip_header`
