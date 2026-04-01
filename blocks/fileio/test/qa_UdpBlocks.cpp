@@ -10,22 +10,22 @@ const boost::ut::suite<"UdpSource"> sourceTests = [] {
     using namespace boost::ut;
     using namespace gr::blocks::fileio;
 
-    "settingsChanged sets output_chunk_size to payload_size/sizeof(T)"_test = [] {
+    "settingsChanged computes _samplesPerPacket for float"_test = [] {
         UdpSource<float> b{};
         b.settings().init();
         std::ignore = b.settings().applyStagedParameters();
         b.payload_size = gr::Size_t{16U}; // 4 floats
         b.settingsChanged({}, {});
-        expect(eq(static_cast<std::size_t>(b.output_chunk_size), std::size_t{4}));
+        expect(eq(b._samplesPerPacket, std::size_t{4}));
     };
 
-    "settingsChanged with complex<float> divides by 8"_test = [] {
+    "settingsChanged with complex<float> divides by sizeof(complex<float>)"_test = [] {
         UdpSource<std::complex<float>> b{};
         b.settings().init();
         std::ignore = b.settings().applyStagedParameters();
         b.payload_size = gr::Size_t{32U}; // 4 complex<float>
         b.settingsChanged({}, {});
-        expect(eq(static_cast<std::size_t>(b.output_chunk_size), std::size_t{4}));
+        expect(eq(b._samplesPerPacket, std::size_t{4}));
     };
 
     "start() binds to local port and stop() closes socket"_test = [] {
@@ -55,13 +55,13 @@ const boost::ut::suite<"UdpSource"> sourceTests = [] {
         expect(!result.has_value()) << "start() should fail for invalid IP";
     };
 
-    "double type compiles and initialises"_test = [] {
+    "double type compiles and _samplesPerPacket is correct"_test = [] {
         UdpSource<double> b{};
         b.settings().init();
         std::ignore = b.settings().applyStagedParameters();
         b.payload_size = gr::Size_t{16U}; // 2 doubles
         b.settingsChanged({}, {});
-        expect(eq(static_cast<std::size_t>(b.output_chunk_size), std::size_t{2}));
+        expect(eq(b._samplesPerPacket, std::size_t{2}));
     };
 };
 
@@ -69,13 +69,13 @@ const boost::ut::suite<"UdpSink"> sinkTests = [] {
     using namespace boost::ut;
     using namespace gr::blocks::fileio;
 
-    "settingsChanged sets input_chunk_size to payload_size/sizeof(T)"_test = [] {
+    "settingsChanged computes _samplesPerPacket for float"_test = [] {
         UdpSink<float> b{};
         b.settings().init();
         std::ignore = b.settings().applyStagedParameters();
         b.payload_size = gr::Size_t{20U}; // 5 floats
         b.settingsChanged({}, {});
-        expect(eq(static_cast<std::size_t>(b.input_chunk_size), std::size_t{5}));
+        expect(eq(b._samplesPerPacket, std::size_t{5}));
     };
 
     "start() creates socket and stop() closes it"_test = [] {
@@ -106,12 +106,12 @@ const boost::ut::suite<"UdpSink"> sinkTests = [] {
         expect(!result.has_value()) << "start() should fail for invalid address";
     };
 
-    "complex<float> compiles and chunk size is correct"_test = [] {
+    "complex<float> compiles and _samplesPerPacket is correct"_test = [] {
         UdpSink<std::complex<float>> b{};
         b.settings().init();
         std::ignore = b.settings().applyStagedParameters();
         b.payload_size = gr::Size_t{32U}; // 4 complex<float>
         b.settingsChanged({}, {});
-        expect(eq(static_cast<std::size_t>(b.input_chunk_size), std::size_t{4}));
+        expect(eq(b._samplesPerPacket, std::size_t{4}));
     };
 };
