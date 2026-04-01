@@ -277,7 +277,7 @@ Estimates the power spectral density using Welch's method: overlapping windowed 
 - **Settings:** `fft_size`, `window_type`, `overlap` (fraction 0–1), `n_averages`
 - **Processing:** `processBulk`
 
-#### `SpectralSubtractor<T>` — P3
+#### `SpectralSubtractor<T>` — P3 ✓ implemented
 Estimates the noise floor from a silent reference interval and subtracts it in the frequency domain to reduce stationary noise. Useful in measurement and audio processing chains.
 - **Ports:** `PortIn<T> in`, `PortOut<T> out`
 - **Settings:** `fft_size`, `alpha` (spectral floor update rate), `reference_frames`

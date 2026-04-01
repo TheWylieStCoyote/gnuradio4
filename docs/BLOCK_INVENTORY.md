@@ -698,6 +698,15 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk` — `input_chunk_size = fft_size * n_averages`, `output_chunk_size = 1`
 - **Types:** `float`, `double`
 
+### `SpectralSubtractor.hpp`
+
+#### `SpectralSubtractor<T>`
+- **Description:** "frequency-domain noise reduction via spectral subtraction; estimates the noise floor from the first `reference_frames` input frames, then subtracts `alpha` × noise RMS from each bin magnitude in subsequent frames"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `fft_size` (default 512), `alpha` (default 1.0, over-subtraction factor), `reference_frames` (default 10)
+- **Processing:** `processBulk` — `input_chunk_size = output_chunk_size = fft_size`
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ---
 
 ## Module: filter (`blocks/filter/`)
@@ -1155,7 +1164,7 @@ Generated from a two-pass review of the `add-blocks` branch.
 | math | 19 |
 | electrical | 7 |
 | fileio | 2 |
-| fourier | 3 |
+| fourier | 4 |
 | filter | 20 |
 | http | 2 |
 | soapy | 1 |
@@ -1164,6 +1173,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | coding | 10 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **120** |
+| **Total** | **121** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux` (basic).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler` (filter); `IFFT`, `SpectralEstimator`, `SpectralSubtractor` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux` (basic).
