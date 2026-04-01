@@ -22,11 +22,8 @@ Pre-existing as `gr::filter::Decimator<T>` in `blocks/filter/include/gnuradio-4.
 #### `Interpolator<T>` — P1 ✓ implemented
 Implemented as `gr::filter::Interpolator<T>` in `blocks/filter/include/gnuradio-4.0/filter/time_domain_filter.hpp`. Zero-insertion upsampler using `output_chunk_size` for dynamic ratio control.
 
-#### `RationalResampler<T>` — P1
-Resample by a rational factor `interpolation / decimation` with an integrated anti-aliasing/anti-imaging FIR filter. The standard building block for sample-rate conversion between arbitrary rates (e.g. 2 Msps → 48 ksps audio). Equivalent to GNU Radio 3.x `rational_resampler`.
-- **Ports:** `PortIn<T> in`, `PortOut<T> out`
-- **Settings:** `interpolation`, `decimation`, `taps` (auto-designed if empty), `fractional_bw`
-- **Processing:** `processBulk`
+#### `RationalResampler<T>` — P1 ✓ implemented
+Implemented as `gr::blocks::filter::RationalResampler<T>` in `blocks/filter/include/gnuradio-4.0/filter/RationalResampler.hpp`.
 
 #### `PolyphaseArbitraryResampler<T>` — P2
 Arbitrary (non-rational) resampling using a polyphase filter bank with linear interpolation between phases. Handles continuously varying or irrational resampling ratios. Useful for clock-recovery feedback loops.
@@ -144,11 +141,8 @@ Adds white Gaussian noise at a configurable SNR or noise standard deviation to a
 
 ### Framing
 
-#### `HeaderPayloadDemux<T>` — P2
-Splits a tagged stream into header and payload sections. On receiving a trigger tag (e.g. from `EnergyDetector` or `Correlation`), it forwards exactly `header_length` samples to one output port and the following `payload_length` samples to a second output port, then returns to armed state. Essential for packet radio and burst-mode decoders.
-- **Ports:** `PortIn<T> in`, `PortOut<T> header`, `PortOut<T> payload`
-- **Settings:** `header_length`, `payload_length`, `trigger_tag_key`
-- **Processing:** `processBulk` — `NoDefaultTagForwarding`
+#### `HeaderPayloadDemux<T>` — P2 ✓ implemented
+Implemented as `gr::blocks::basic::HeaderPayloadDemux<T>` in `blocks/basic/include/gnuradio-4.0/basic/HeaderPayloadDemux.hpp`.
 
 ---
 

@@ -272,6 +272,16 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk` — dynamic `Resampling<1,1,false>`
 - **Types:** all numeric types
 
+### `HeaderPayloadDemux.hpp`
+
+#### `HeaderPayloadDemux<T>`
+- **Description:** "tag-triggered burst demultiplexer; on detecting `trigger_tag_key`, routes `header_length` samples to `header` then `payload_length` samples to `payload`; both outputs emit `T{}` when inactive"
+- **Ports:** `PortIn<T> in`, `PortOut<T> header`, `PortOut<T> payload`
+- **Settings:** `header_length` (default 8), `payload_length` (default 64), `trigger_tag_key` (default "trigger")
+- **State:** `State _state` (Idle/Header/Payload), `std::size_t _count`
+- **Processing:** `processOne` — returns `std::tuple<T, T>` for the two output ports
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ### `StreamToVector.hpp`
 
 #### `StreamToVector<T>`
@@ -852,6 +862,16 @@ Generated from a two-pass review of the `add-blocks` branch.
 - **Processing:** `processBulk`
 - **Types:** `float`, `double`
 
+### `RationalResampler.hpp`
+
+#### `RationalResampler<T>`
+- **Description:** "polyphase rational sample-rate converter; resamples by `interpolation / decimation` using a prototype FIR filter split into `interpolation` polyphase sub-filters; auto-designs a Kaiser-windowed sinc lowpass if `taps` is empty"
+- **Ports:** `PortIn<T> in`, `PortOut<T> out`
+- **Settings:** `interpolation` (default 1), `decimation` (default 1), `taps` (auto-designed if empty), `fractional_bw` (default 0.4)
+- **State:** `_phases[L][nPerPhase]`, `_history[nPerPhase-1]`, `_combined[nPerPhase-1+M]`
+- **Processing:** `processBulk` — `input_chunk_size = M`, `output_chunk_size = L` (GCD-reduced)
+- **Types:** `float`, `double`, `std::complex<float>`, `std::complex<double>`
+
 ### `MedianFilter.hpp`
 
 #### `MedianFilter<T>`
@@ -1131,12 +1151,12 @@ Generated from a two-pass review of the `add-blocks` branch.
 
 | Module | Count |
 |---|---|
-| basic | 35 |
+| basic | 36 |
 | math | 19 |
 | electrical | 7 |
 | fileio | 2 |
 | fourier | 3 |
-| filter | 19 |
+| filter | 20 |
 | http | 2 |
 | soapy | 1 |
 | testing | 12 |
@@ -1144,6 +1164,6 @@ Generated from a two-pass review of the `add-blocks` branch.
 | coding | 10 |
 | demod | 4 |
 | timing | 2 |
-| **Total** | **118** |
+| **Total** | **120** |
 
-**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream` (basic).
+**Recently added:** `Accumulator`, `AgcBlock`, `AmDemod`, `Clamp`, `DbConvert`, `EnergyDetector`, `Limiter`, `MovingAverage`, `MovingRms`, `QuadratureDemod`, `PhaseUnwrap`, `Conjugate`, `Differentiator`, `InstantaneousFrequency`, `SchmittTrigger`, `Threshold`, `Histogram` (math); `BiquadFilter`, `FractionalDelayLine`, `AdaptiveLmsFilter`, `Squelch`, `Convolver`, `SteadyStateKalman`, `KalmanFilter`, `CicDecimator`, `CicInterpolator`, `DCBlocker`, `HilbertTransform`, `Interpolator`, `Repeat`, `WienerFilter`, `MedianFilter`, `RationalResampler` (filter); `IFFT`, `SpectralEstimator` (fourier); `PhasorEstimator`, `HarmonicAnalyser`, `TotalHarmonicDistortion`, `GridFrequencyEstimator` (electrical); `DifferentialEncoder/Decoder`, `GrayCodeEncoder/Decoder`, `PackBits`, `UnpackBits`, `Scrambler`, `CrcCompute`, `ConvEncoder`, `ViterbiDecoder` (coding); `PLL`, `CostasLoop`, `ClockRecoveryMM`, `SymbolSync` (demod); `CyclicPrefixAdd`, `CyclicPrefixRemove` (ofdm); `Head`, `Skip`, `ChirpSource`, `AwgnChannel`, `StreamTagger`, `TagGate`, `TagDebugSink`, `WindowApply`, `StreamMux`, `StreamDemux`, `KeepMInN`, `StreamToVector`, `VectorToStream`, `HeaderPayloadDemux` (basic).
