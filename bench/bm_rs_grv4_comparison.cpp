@@ -51,7 +51,7 @@ static double medianNsPerRun(F&& fn) {
 
 static void report(std::string_view name, double medianNs, std::size_t n) {
     double msas = static_cast<double>(n) / medianNs * 1e3;
-    std::printf("%-36s  %10.1f ns  %8.2f MSa/s\n",
+    std::printf("%-44s  %10.1f ns  %8.2f MSa/s\n",
                 std::string(name).c_str(), medianNs, msas);
 }
 
@@ -163,6 +163,170 @@ static void benchRotator() {
     }
 }
 
+// ── Complex decomposition ─────────────────────────────────────────────────────
+
+static void benchComplexOps() {
+    std::vector<std::complex<float>> input(kN, {1.0f, 0.5f});
+    std::vector<float> output(kN);
+
+    {
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                output[i] = input[i].real();
+            volatile auto sink = output[0]; (void)sink;
+        });
+        report("complex_to_real/f32", med, kN);
+    }
+    {
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                output[i] = std::abs(input[i]);
+            volatile auto sink = output[0]; (void)sink;
+        });
+        report("complex_to_mag/f32", med, kN);
+    }
+}
+
+// ── Expression blocks: Scale / Add ────────────────────────────────────────────
+
+static void benchExpressionBlocks() {
+    std::vector<float> in0(kN, 1.0f);
+    std::vector<float> in1(kN, 1.0f);
+    std::vector<float> out(kN);
+
+    {
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                out[i] = in0[i] * 2.0f;
+            volatile auto sink = out[0]; (void)sink;
+        });
+        report("scale/f32", med, kN);
+    }
+    {
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                out[i] = in0[i] + in1[i];
+            volatile auto sink = out[0]; (void)sink;
+        });
+        report("add/f32", med, kN);
+    }
+}
+
+// ── Angle conversion: RadToDeg / DegToRad ────────────────────────────────────
+
+static void benchAngleConversion() {
+    std::vector<float> input(kN);
+    std::vector<float> output(kN);
+
+    {
+        constexpr float kFactor = 180.0f / std::numbers::pi_v<float>;
+        std::fill(input.begin(), input.end(), 1.0f);
+
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                output[i] = input[i] * kFactor;
+            volatile auto sink = output[0]; (void)sink;
+        });
+        report("rad_to_deg/f32", med, kN);
+    }
+    {
+        constexpr float kFactor = std::numbers::pi_v<float> / 180.0f;
+        std::fill(input.begin(), input.end(), 180.0f);
+
+        auto med = medianNsPerRun([&] {
+            for (std::size_t i = 0; i < kN; ++i)
+                output[i] = input[i] * kFactor;
+            volatile auto sink = output[0]; (void)sink;
+        });
+        report("deg_to_rad/f32", med, kN);
+    }
+}
+
+// ── Delay (ring-buffer sample shift) ─────────────────────────────────────────
+
+static void benchDelay() {
+    std::vector<float> input(kN, 1.0f);
+    std::vector<float> output(kN, 0.0f);
+
+    for (std::size_t delay : {0UZ, 64UZ, 1024UZ}) {
+        auto med = medianNsPerRun([&] {
+            if (delay == 0) {
+                std::copy(input.begin(), input.end(), output.begin());
+            } else {
+                std::vector<float> history(delay, 0.0f);
+                std::size_t pos = 0;
+                for (std::size_t i = 0; i < kN; ++i) {
+                    output[i]    = history[pos];
+                    history[pos] = input[i];
+                    pos          = (pos + 1) % delay;
+                }
+            }
+            volatile auto sink = output[0]; (void)sink;
+        });
+        char buf[32];
+        std::snprintf(buf, sizeof(buf), "delay/%zu", delay);
+        report(buf, med, kN);
+    }
+}
+
+// ── Circular buffer (write + read, varying batch size) ────────────────────────
+
+static void benchCircularBuffer() {
+    for (std::size_t batch : {64UZ, 256UZ, 1024UZ, 4096UZ}) {
+        const std::size_t capacity = batch * 2;
+        std::vector<float> ring(capacity, 0.0f);
+        std::vector<float> input(batch);
+        for (std::size_t i = 0; i < batch; ++i) input[i] = static_cast<float>(i);
+        std::vector<float> output(batch, 0.0f);
+
+        auto med = medianNsPerRun([&] {
+            std::size_t head = 0, tail = 0;
+            // write batch
+            for (std::size_t i = 0; i < batch; ++i) {
+                ring[head] = input[i];
+                head = (head + 1) % capacity;
+            }
+            // read batch
+            for (std::size_t i = 0; i < batch; ++i) {
+                output[i] = ring[tail];
+                tail = (tail + 1) % capacity;
+            }
+            volatile auto sink = output[0]; (void)sink;
+        });
+        char buf[48];
+        std::snprintf(buf, sizeof(buf), "circular_buffer/%zu", batch);
+        report(buf, med, batch);
+    }
+}
+
+// ── File I/O (write and read 1M f32 samples) ─────────────────────────────────
+
+static void benchFileIo() {
+    const char* kPath = "/tmp/bm_rs_grv4_compare.bin";
+    std::vector<float> data(kN);
+    for (std::size_t i = 0; i < kN; ++i) data[i] = static_cast<float>(i) * 0.001f;
+
+    {
+        auto med = medianNsPerRun([&] {
+            FILE* f = std::fopen(kPath, "wb");
+            std::fwrite(data.data(), sizeof(float), kN, f);
+            std::fclose(f);
+        });
+        report("file_sink/f32_1M", med, kN);
+    }
+    {
+        std::vector<float> buf(kN);
+        auto med = medianNsPerRun([&] {
+            FILE* f = std::fopen(kPath, "rb");
+            auto nread = std::fread(buf.data(), sizeof(float), kN, f);
+            std::fclose(f);
+            volatile auto sink = buf[0]; (void)sink; (void)nread;
+        });
+        report("file_source/f32_1M", med, kN);
+    }
+    std::remove(kPath);
+}
+
 // ── FIR filter ────────────────────────────────────────────────────────────────
 
 static std::vector<double> designHannLpf(std::size_t nTaps, double cutoffNorm) {
@@ -195,7 +359,7 @@ static void runFirBench(std::size_t nTaps, const std::vector<T>& taps,
         }
         volatile auto sink = acc; (void)sink;
     });
-    char label[48];
+    char label[64];
     std::snprintf(label, sizeof(label), "%s/%zu_taps", std::string(prefix).c_str(), nTaps);
     report(label, med, kN);
 }
@@ -221,50 +385,65 @@ static void benchFirF32() {
     }
 }
 
+// fir_f32_block: same algorithm as fir_f32 — C++ has no block-wrapper overhead.
+// Reported under the block name so bench_summary.py pairs them with the Rust
+// block-level benchmarks (which call process_bulk rather than the raw algorithm).
+static void benchFirF32Block() {
+    for (std::size_t nTaps : {16UZ, 64UZ, 256UZ}) {
+        auto tapsd = designHannLpf(nTaps, 0.1);
+        std::vector<float> tapsf(tapsd.begin(), tapsd.end());
+        std::vector<float> inputf(kN);
+        for (std::size_t i = 0; i < kN; ++i)
+            inputf[i] = std::sin(static_cast<float>(i) * 0.001f);
+        runFirBench(nTaps, tapsf, inputf, "fir_f32_block");
+    }
+}
+
 // ── IIR biquad ────────────────────────────────────────────────────────────────
 
-static void benchIir() {
-    constexpr double b0 =  0.020083365564211;
-    constexpr double b1 =  0.040166731128422;
-    constexpr double b2 =  0.020083365564211;
-    constexpr double a1 = -1.561018075800718;
-    constexpr double a2 =  0.641351538057563;
+// Shared biquad coefficients: 2nd-order Butterworth LPF, fc = 0.1 * Nyquist.
+static constexpr double kB0 =  0.020083365564211;
+static constexpr double kB1 =  0.040166731128422;
+static constexpr double kB2 =  0.020083365564211;
+static constexpr double kA1 = -1.561018075800718;
+static constexpr double kA2 =  0.641351538057563;
 
+template<int NSections>
+static double runIirBench(const std::vector<double>& input) {
+    return medianNsPerRun([&] {
+        double w1[NSections] = {}, w2[NSections] = {}, acc = 0.0;
+        for (std::size_t s = 0; s < kN; ++s) {
+            double x = input[s];
+            for (int sec = 0; sec < NSections; ++sec) {
+                const double y = kB0 * x + w1[sec];
+                w1[sec] = kB1 * x - kA1 * y + w2[sec];
+                w2[sec] = kB2 * x - kA2 * y;
+                x = y;
+            }
+            acc += x;
+        }
+        volatile auto sink = acc; (void)sink;
+    });
+}
+
+static void benchIir() {
     std::vector<double> input(kN);
     for (std::size_t i = 0; i < kN; ++i)
         input[i] = std::sin(static_cast<double>(i) * 0.001);
 
-    {
-        auto med = medianNsPerRun([&] {
-            double w1 = 0.0, w2 = 0.0, acc = 0.0;
-            for (std::size_t s = 0; s < kN; ++s) {
-                const double x = input[s];
-                const double y = b0 * x + w1;
-                w1 = b1 * x - a1 * y + w2;
-                w2 = b2 * x - a2 * y;
-                acc += y;
-            }
-            volatile auto sink = acc; (void)sink;
-        });
-        report("iir/1_section", med, kN);
-    }
-    {
-        auto med = medianNsPerRun([&] {
-            double w1[4] = {}, w2[4] = {}, acc = 0.0;
-            for (std::size_t s = 0; s < kN; ++s) {
-                double x = input[s];
-                for (int sec = 0; sec < 4; ++sec) {
-                    const double y = b0 * x + w1[sec];
-                    w1[sec] = b1 * x - a1 * y + w2[sec];
-                    w2[sec] = b2 * x - a2 * y;
-                    x = y;
-                }
-                acc += x;
-            }
-            volatile auto sink = acc; (void)sink;
-        });
-        report("iir/4_sections", med, kN);
-    }
+    report("iir/1_section",  runIirBench<1>(input), kN);
+    report("iir/4_sections", runIirBench<4>(input), kN);
+}
+
+// iir_block: same algorithm as iir — C++ has no block-wrapper overhead.
+// Reported under the block name to pair with Rust iir_block benchmarks.
+static void benchIirBlock() {
+    std::vector<double> input(kN);
+    for (std::size_t i = 0; i < kN; ++i)
+        input[i] = std::sin(static_cast<double>(i) * 0.001);
+
+    report("iir_block/1_section",  runIirBench<1>(input), kN);
+    report("iir_block/4_sections", runIirBench<4>(input), kN);
 }
 
 // ── Savitzky-Golay (standalone, mirrors gr_algorithm::filter::savitzky_golay) ─
@@ -361,6 +540,159 @@ static void benchSavitzkyGolay() {
     }
 }
 
+// ── SVD denoiser (standalone, mirrors gr_algorithm::filter::svd_filter) ───────
+//
+// Implements Hankel-matrix SVD denoising:
+//   1. Build H (cols × W) where H[i,j] = signal[i+j]
+//   2. Form covariance C = H^T H  (W×W)
+//   3. Find top-k eigenvectors of C via power iteration + deflation
+//   4. Reconstruct by projecting each Hankel row onto the k-d subspace,
+//      then average along anti-diagonals
+//
+// Window sizes ≤ 32 keep the W×W inner loop fast; input length is 512 to match
+// the Rust SVD_N constant.
+
+static std::vector<double> powerIter(std::vector<double> A, int W, int iters = 30) {
+    std::vector<double> v(W, 1.0 / std::sqrt(static_cast<double>(W)));
+    for (int it = 0; it < iters; ++it) {
+        std::vector<double> Av(W, 0.0);
+        for (int i = 0; i < W; ++i)
+            for (int j = 0; j < W; ++j)
+                Av[i] += A[i * W + j] * v[j];
+        double norm = 0.0;
+        for (auto x : Av) norm += x * x;
+        norm = std::sqrt(norm);
+        if (norm < 1e-15) break;
+        for (auto& x : Av) x /= norm;
+        v = Av;
+    }
+    return v;
+}
+
+static void benchSvdFilter() {
+    constexpr int kSvdN = 512;
+    const std::array<std::tuple<const char*, int, int>, 2> configs{{
+        {"w16_k2", 16, 2},
+        {"w32_k3", 32, 3},
+    }};
+
+    std::vector<double> signal(kSvdN);
+    for (int i = 0; i < kSvdN; ++i)
+        signal[i] = std::sin(i * 0.05);
+
+    for (auto [label, W, k] : configs) {
+        auto med = medianNsPerRun([&] {
+            const int cols = kSvdN - W + 1;
+
+            // Build covariance matrix C = H^T H  (W×W)
+            std::vector<double> C(W * W, 0.0);
+            for (int row = 0; row < cols; ++row)
+                for (int i = 0; i < W; ++i)
+                    for (int j = 0; j < W; ++j)
+                        C[i * W + j] += signal[row + i] * signal[row + j];
+
+            // Find top-k eigenvectors via deflation
+            std::vector<std::vector<double>> evecs;
+            std::vector<double> residual = C;
+            for (int ki = 0; ki < k; ++ki) {
+                auto v = powerIter(residual, W);
+                evecs.push_back(v);
+                // Compute eigenvalue λ = v^T C v
+                double lambda = 0.0;
+                for (int i = 0; i < W; ++i)
+                    for (int j = 0; j < W; ++j)
+                        lambda += v[i] * C[i * W + j] * v[j];
+                // Deflate: residual -= λ * v * v^T
+                for (int i = 0; i < W; ++i)
+                    for (int j = 0; j < W; ++j)
+                        residual[i * W + j] -= lambda * v[i] * v[j];
+            }
+
+            // Reconstruct via overlap-add
+            std::vector<double> out(kSvdN, 0.0);
+            std::vector<double> weights(kSvdN, 0.0);
+            for (int row = 0; row < cols; ++row) {
+                for (const auto& v : evecs) {
+                    double coeff = 0.0;
+                    for (int i = 0; i < W; ++i)
+                        coeff += signal[row + i] * v[i];
+                    for (int i = 0; i < W; ++i) {
+                        out[row + i]     += coeff * v[i];
+                        weights[row + i] += 1.0;
+                    }
+                }
+            }
+            for (int i = 0; i < kSvdN; ++i)
+                if (weights[i] > 0.0) out[i] /= weights[i];
+
+            volatile auto sink = out[0]; (void)sink;
+        });
+        char buf[32];
+        std::snprintf(buf, sizeof(buf), "svd_filter/%s", label);
+        report(buf, med, kSvdN);
+    }
+}
+
+// ── Full pipeline (SignalGenerator → NullSink equivalent) ─────────────────────
+//
+// The Rust benchmark builds a `SignalGenerator → NullSink` graph including graph
+// construction and run in each Criterion iteration.  We simulate this as:
+//   - init generator state  (≈ graph construction)
+//   - stream N samples in chunks of 1024  (≈ scheduler dispatch)
+//   - accumulate into a volatile sink  (≈ NullSink)
+// chunk_size=1024 matches the Rust bench default.
+
+static void benchFullGraph() {
+    using namespace gr::signal;
+    constexpr float kFreq = 440.0f;
+    constexpr float kSr   = 44100.0f;
+
+    for (std::size_t n : {1000UZ, 10000UZ, 100000UZ}) {
+        auto med = medianNsPerRun([&] {
+            SignalGeneratorCore<double> gen;
+            gen.configure(SignalType::Sin, kFreq, kSr, 0.0f, 1.0f, 0.0f, 0);
+            std::vector<double> buf(1024);
+            double acc = 0.0;
+            std::size_t remaining = n;
+            while (remaining > 0) {
+                std::size_t chunk = std::min(remaining, std::size_t{1024});
+                buf.resize(chunk);
+                gen.fill(std::span<double>(buf));
+                for (auto v : buf) acc += v;
+                remaining -= chunk;
+            }
+            volatile auto sink = acc; (void)sink;
+        });
+        char label[32];
+        std::snprintf(label, sizeof(label), "full_graph/%zu", n);
+        report(label, med, n);
+    }
+}
+
+static void benchFullGraphChunkSize() {
+    using namespace gr::signal;
+    constexpr float      kFreq  = 440.0f;
+    constexpr float      kSr    = 44100.0f;
+    constexpr std::size_t kTotal = 65536;
+
+    for (std::size_t chunk_size : {64UZ, 256UZ, 1024UZ, 4096UZ}) {
+        auto med = medianNsPerRun([&] {
+            SignalGeneratorCore<double> gen;
+            gen.configure(SignalType::Sin, kFreq, kSr, 0.0f, 1.0f, 0.0f, 0);
+            std::vector<double> buf(chunk_size);
+            double acc = 0.0;
+            for (std::size_t i = 0; i < kTotal; i += chunk_size) {
+                gen.fill(std::span<double>(buf));
+                for (auto v : buf) acc += v;
+            }
+            volatile auto sink = acc; (void)sink;
+        });
+        char label[48];
+        std::snprintf(label, sizeof(label), "full_graph_chunk_size/%zu", chunk_size);
+        report(label, med, kTotal);
+    }
+}
+
 // ── FFT (standalone radix-2 Cooley-Tukey, power-of-2 sizes) ──────────────────
 //
 // The gnuradio4 fft.hpp requires vir::simd / magic_enum (GCC 14+ only).
@@ -411,17 +743,28 @@ static void benchFft() {
 // ── main ──────────────────────────────────────────────────────────────────────
 
 int main() {
-    std::printf("%-36s  %12s  %14s\n", "benchmark", "median_ns", "throughput");
-    std::printf("%s\n", std::string(66, '-').c_str());
+    std::printf("%-44s  %12s  %14s\n", "benchmark", "median_ns", "throughput");
+    std::printf("%s\n", std::string(74, '-').c_str());
 
     benchRng();
     benchSignal();
     benchRotator();
+    benchComplexOps();
+    benchExpressionBlocks();
+    benchAngleConversion();
+    benchDelay();
+    benchCircularBuffer();
+    benchFileIo();
     benchFir();
     benchFirF32();
+    benchFirF32Block();
     benchIir();
+    benchIirBlock();
     benchSavitzkyGolay();
+    benchSvdFilter();
     benchFft();
+    benchFullGraph();
+    benchFullGraphChunkSize();
 
     return 0;
 }

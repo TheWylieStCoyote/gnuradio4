@@ -27,6 +27,7 @@ build*/
 build_*/
 out/
 cmake-build-*/
+bench/bm_compare
 
 # Annoying OS Generated Files
 .DS_Store
