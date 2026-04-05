@@ -28,11 +28,9 @@
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdio>
 #include <cstdint>
-#include <format>
-#include <iostream>
 #include <numeric>
-#include <print>
 #include <string>
 #include <vector>
 
@@ -57,7 +55,8 @@ static double medianNsPerRun(F&& fn) {
 
 static void report(std::string_view name, double medianNs, std::size_t n) {
     double msas = static_cast<double>(n) / medianNs * 1e3; // MSa/s
-    std::println("{:<36}  {:>10.1f} ns  {:>8.2f} MSa/s", name, medianNs, msas);
+    std::printf("%-36s  %10.1f ns  %8.2f MSa/s\n",
+                std::string(name).c_str(), medianNs, msas);
 }
 
 // ── RNG benchmarks ────────────────────────────────────────────────────────────
@@ -108,7 +107,7 @@ static void benchSignal() {
             volatile auto sink = out[0];
             (void)sink;
         });
-        report(std::string("signal_gen/tone_") + std::string(label), med, kN);
+        report(std::string("signal_gen/tone_") + std::string(label.begin(), label.end()), med, kN);
     };
 
     runTone(SignalType::Sin,      "sin");
@@ -188,7 +187,9 @@ static void benchFir() {
             volatile auto sink = acc2;
             (void)sink;
         });
-        report(std::format("fir/{}_taps", nTaps), med, kN);
+        char label[32];
+        std::snprintf(label, sizeof(label), "fir/%zu_taps", nTaps);
+        report(label, med, kN);
     }
 }
 
@@ -249,8 +250,8 @@ static void benchIir() {
 // ── main ──────────────────────────────────────────────────────────────────────
 
 int main() {
-    std::println("{:<36}  {:>12}  {:>14}", "benchmark", "median_ns", "throughput");
-    std::println("{}", std::string(66, '-'));
+    std::printf("%-36s  %12s  %14s\n", "benchmark", "median_ns", "throughput");
+    std::printf("%s\n", std::string(66, '-').c_str());
 
     benchRng();
     benchSignal();
